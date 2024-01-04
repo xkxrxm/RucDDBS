@@ -1,0 +1,3 @@
+[submodule "deps/snappy"]
+	path = deps/snappy
+	url = git@github.com:HuangDunD/snappy.git

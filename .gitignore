@@ -1,0 +1,59 @@
+.git-old/*
+data/
+data1/
+data2/
+data3/
+rpc_data/
+.VSCodeCounter/
+src/parser/yacc.tab.cpp
+src/parser/yacc.tab.h
+deps/
+
+# vscode ================================
+.vscode/
+
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake ================================
+bin/
+build/
+**/build/
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
