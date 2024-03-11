@@ -46,6 +46,7 @@ deps/
 # CMake ================================
 bin/
 build/
+bld*/
 **/build/
 CMakeLists.txt.user
 CMakeCache.txt

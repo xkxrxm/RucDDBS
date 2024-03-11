@@ -1,6 +1,6 @@
-#line 2 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 2 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
-#line 4 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 4 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -637,9 +637,9 @@ char *yytext;
         } \
     }
 
-#line 641 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 641 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
-#line 643 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 643 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
 #define INITIAL 0
 #define STATE_COMMENT 1
@@ -877,7 +877,7 @@ YY_DECL
 
 #line 48 "lex.l"
     /* block comment */
-#line 881 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 881 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1212,7 +1212,7 @@ YY_RULE_SETUP
 #line 119 "lex.l"
 ECHO;
 	YY_BREAK
-#line 1216 "/home/t500ttt/RucDDBS/src/parser/lex.yy.cpp"
+#line 1216 "/home/xkx/bishe/src/parser/lex.yy.cpp"
 
 	case YY_END_OF_BUFFER:
 		{

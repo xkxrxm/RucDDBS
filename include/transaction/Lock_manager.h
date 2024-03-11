@@ -29,7 +29,7 @@ public:
         /** For notifying blocked transactions on this rid */
         std::condition_variable cv_;
         // upgrading_flag: if there is a lock waiting for upgrading, other transactions that request for upgrading will be aborted
-        // (deadlock prevetion)
+        // (deadlock prevention)
         bool upgrading_ = false;                    // 当前队列中是否存在一个正在upgrade的锁
         /** coordination */
         std::mutex latch_;
