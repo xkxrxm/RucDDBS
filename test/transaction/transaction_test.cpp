@@ -144,7 +144,7 @@ TEST_F(TransactionTest, TransactionTest1){
     cntl.Reset();
 
     lock_manager_->LockTable(txn1, LockMode::INTENTION_EXCLUSIVE, 1);
-    lock_manager_->LockPartition(txn1, LockMode::EXLUCSIVE, 1 , 1);
+    lock_manager_->LockPartition(txn1, LockMode::EXCLUSIVE, 1 , 1);
     kv_->put("key1", "value1", txn1);
         
     transaction_manager_->Commit(txn1);
@@ -189,7 +189,7 @@ TEST_F(TransactionTest, TransactionTest1){
     cntl.Reset();
 
     lock_manager_->LockTable(txn2, LockMode::INTENTION_EXCLUSIVE, 1);
-    lock_manager_->LockPartition(txn2, LockMode::EXLUCSIVE, 1 , 1);
+    lock_manager_->LockPartition(txn2, LockMode::EXCLUSIVE, 1 , 1);
     kv_->put("key3", "value3", txn2);
 
     ASSERT_EQ(txn2->get_state(), TransactionState::GROWING);

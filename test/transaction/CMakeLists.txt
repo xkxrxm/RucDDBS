@@ -12,7 +12,7 @@ add_executable(transaction_test2
     ../../meta_server/build/meta_service.pb.cc 
 )
 
-add_executable( LockManager_test
+add_executable(LockManager_test
     Lock_manager_test.cpp
     ../../src/transaction/Lock_manager.cpp
     

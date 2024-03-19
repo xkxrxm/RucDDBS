@@ -155,7 +155,7 @@ TEST_F(LockManagerTest, BasicTest2_EXCLUSIVE_TUPLE) {
         EXPECT_EQ(txns[txn_id]->get_state(), TransactionState::GROWING);
 
         for(const row_id_t &row : row_vec) {
-            res = lock_manager_->LockRow(txns[txn_id], LockMode::EXLUCSIVE, 0, 0, row);
+            res = lock_manager_->LockRow(txns[txn_id], LockMode::EXCLUSIVE, 0, 0, row);
             EXPECT_TRUE(res);
             std::this_thread::sleep_for(std::chrono::milliseconds(rand()%200));
             std::cout << "txn_id : " << txn_id << " LockRow X row_id: (" << row << ")" << std::endl;
@@ -229,7 +229,7 @@ TEST_F(LockManagerTest, BasicTest3_EXCLUSIVE_Partition) {
         EXPECT_EQ(txns[txn_id]->get_state(), TransactionState::GROWING);
 
         for(const partition_id_t &p : p_vec) {
-            res = lock_manager_->LockPartition(txns[txn_id], LockMode::EXLUCSIVE, 0, p);
+            res = lock_manager_->LockPartition(txns[txn_id], LockMode::EXCLUSIVE, 0, p);
             EXPECT_TRUE(res);
             std::this_thread::sleep_for(std::chrono::milliseconds(rand()%200));
             std::cout << "txn_id : " << txn_id << " LockPartition X p_id: (" << p << ")" << std::endl;
@@ -316,7 +316,7 @@ TEST_F(LockManagerTest, BasicTest4_INTENTION_SHARED) {
         std::this_thread::sleep_for(std::chrono::milliseconds (500));
 
        Transaction txn1(1);
-       bool res = lock_manager_->LockTable(&txn1, LockMode::EXLUCSIVE, 0);
+       bool res = lock_manager_->LockTable(&txn1, LockMode::EXCLUSIVE, 0);
        operation.push_back(1);
        EXPECT_EQ(res, true);
        EXPECT_EQ(txn1.get_state(), TransactionState::GROWING);
@@ -339,7 +339,7 @@ TEST_F(LockManagerTest, BasicTest4_INTENTION_SHARED) {
 }
 
 // test intention shared lock on table under REPEATABLE_READ
-TEST_F(LockManagerTest, BasicTest5_INTENTION_EXLUCSIVE) {
+TEST_F(LockManagerTest, BasicTest5_INTENTION_EXCLUSIVE) {
     // txnA -> table1.tuple{1,1} shared
     // txnB -> table1 exclusive
     row_id_t row_id = 0;
@@ -356,7 +356,7 @@ TEST_F(LockManagerTest, BasicTest5_INTENTION_EXLUCSIVE) {
         EXPECT_EQ(res, true);
         EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
 
-        res = lock_manager_->LockRow(&txn0, LockMode::EXLUCSIVE, 0, 0, row_id);
+        res = lock_manager_->LockRow(&txn0, LockMode::EXCLUSIVE, 0, 0, row_id);
         EXPECT_EQ(res, true);
         EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
 
@@ -451,7 +451,7 @@ TEST_F(LockManagerTest, UpgradeTest1_upgrade_SToX){
         EXPECT_EQ(res, true);
         EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
 
-        res = lock_manager_->LockRow(&txn0, LockMode::EXLUCSIVE, 0, 0, 0);
+        res = lock_manager_->LockRow(&txn0, LockMode::EXCLUSIVE, 0, 0, 0);
         EXPECT_EQ(res, true);
         EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
 
@@ -506,7 +506,7 @@ TEST_F(LockManagerTest, UpgradeTest2_muti_upgrade){
         // EXPECT_EQ(res, true);
         // EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
 
-        res = lock_manager_->LockRow(&txn0, LockMode::EXLUCSIVE, 0, 0, 0);
+        res = lock_manager_->LockRow(&txn0, LockMode::EXCLUSIVE, 0, 0, 0);
         std::cout << txn_id << " : LockRow X res: " << res << std::endl; 
         // EXPECT_EQ(res, true);
         // EXPECT_EQ(txn0.get_state(), TransactionState::GROWING);
@@ -570,7 +570,7 @@ TEST_F(LockManagerTest, DeadLock_Test1){
         res = lock_manager_->LockPartition(&txn0, LockMode::INTENTION_EXCLUSIVE, 0, 0);
         std::cout << txn_id << " : LockPartition IX res: " << res << std::endl; 
 
-        res = lock_manager_->LockRow(&txn0, LockMode::EXLUCSIVE, 0, 0, 1);
+        res = lock_manager_->LockRow(&txn0, LockMode::EXCLUSIVE, 0, 0, 1);
         std::cout << txn_id << " : LockRow 1 X res: " << res << std::endl; 
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -617,7 +617,7 @@ TEST_F(LockManagerTest, DeadLock_Test1){
         res = lock_manager_->LockPartition(&txn0, LockMode::INTENTION_EXCLUSIVE, 0, 0);
         std::cout << txn_id << " : LockPartition IX res: " << res << std::endl; 
 
-        res = lock_manager_->LockRow(&txn0, LockMode::EXLUCSIVE, 0, 0, 0);
+        res = lock_manager_->LockRow(&txn0, LockMode::EXCLUSIVE, 0, 0, 0);
         std::cout << txn_id << " : LockRow 1 X res: " << res << std::endl; 
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));

@@ -154,8 +154,8 @@ public:
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
         transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXLUCSIVE, o_id, par);
-        // transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXLUCSIVE, o_id, par, rec->row[0]->str);
+        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
+        // transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, rec->row[0]->str);
         // 默认第一列为主键
         string key = "/store_data/" + tab_name + "/" 
             + to_string(par) + "/" + to_string(rec->row[0]->str);
@@ -181,9 +181,9 @@ public:
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
         transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXLUCSIVE, o_id, par);
+        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
-        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXLUCSIVE, o_id, par, x->row[0]->str);
+        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
         // }
         
         // 构造key 进行删除
@@ -213,9 +213,9 @@ public:
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
         transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXLUCSIVE, o_id, par);
+        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
-        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXLUCSIVE, o_id, par, x->row[0]->str);
+        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
         // }
         
         // 构造key 进行更新

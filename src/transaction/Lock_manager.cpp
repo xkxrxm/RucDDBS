@@ -8,7 +8,7 @@ std::atomic<bool> Lock_manager::enable_no_wait_;
 auto Lock_manager::isLockCompatible(const LockRequest *iter, const LockMode &target_lock_mode) -> bool {
     switch (target_lock_mode) {
         case LockMode::INTENTION_SHARED:
-            if(iter->lock_mode_ == LockMode::EXLUCSIVE){
+            if(iter->lock_mode_ == LockMode::EXCLUSIVE){
                 return false;
             }
             break;
@@ -27,7 +27,7 @@ auto Lock_manager::isLockCompatible(const LockRequest *iter, const LockMode &tar
                 return false;
             }
             break;
-        case LockMode::EXLUCSIVE:
+        case LockMode::EXCLUSIVE:
             return false;
         default:
             return false;
@@ -50,7 +50,7 @@ bool Lock_manager::isUpdateCompatible(const LockRequest *iter, const LockMode &u
             *return_lock_mode = upgrade_lock_mode;
             break;
         case LockMode::SHARED:
-            if(upgrade_lock_mode == LockMode::EXLUCSIVE) {
+            if(upgrade_lock_mode == LockMode::EXCLUSIVE) {
                 // S + X = X
                 *return_lock_mode = upgrade_lock_mode;
             }else if(upgrade_lock_mode == LockMode::INTENTION_EXCLUSIVE){
@@ -61,7 +61,7 @@ bool Lock_manager::isUpdateCompatible(const LockRequest *iter, const LockMode &u
             }
             break;
         case LockMode::INTENTION_EXCLUSIVE:
-            if(upgrade_lock_mode == LockMode::EXLUCSIVE) {
+            if(upgrade_lock_mode == LockMode::EXCLUSIVE) {
                 // IX + X = X
                 *return_lock_mode = upgrade_lock_mode;
             }else if(upgrade_lock_mode == LockMode::INTENTION_SHARED){
@@ -72,13 +72,13 @@ bool Lock_manager::isUpdateCompatible(const LockRequest *iter, const LockMode &u
             }
             break;
         case LockMode::S_IX:
-            if(upgrade_lock_mode != LockMode::EXLUCSIVE){
+            if(upgrade_lock_mode != LockMode::EXCLUSIVE){
                 return false;
             }
             // SIX + X = X
             *return_lock_mode = upgrade_lock_mode;
             break;
-        case LockMode::EXLUCSIVE:
+        case LockMode::EXCLUSIVE:
             return false;
             break;
         default:
@@ -240,7 +240,7 @@ auto Lock_manager::LockPartition(Transaction *txn, LockMode lock_mode, const tab
     //         throw TransactionAbortException(txn->get_txn_id(), AbortReason::TABLE_LOCK_NOT_PRESENT);
     //     }
     // } 
-    // else if(lock_mode == LockMode::EXLUCSIVE || lock_mode == LockMode::INTENTION_EXCLUSIVE || lock_mode == LockMode::S_IX){
+    // else if(lock_mode == LockMode::EXCLUSIVE || lock_mode == LockMode::INTENTION_EXCLUSIVE || lock_mode == LockMode::S_IX){
     //     //检查父节点是否上IX锁
     //     if(txn->get_table_IX_lock_set()->count(parent_table_l_id)==0){
     //         throw TransactionAbortException(txn->get_txn_id(), AbortReason::TABLE_LOCK_NOT_PRESENT);
@@ -295,7 +295,7 @@ auto Lock_manager::LockRow(Transaction *txn, LockMode lock_mode, const table_oid
         // std :: cout << static_cast<int>(txn->get_state()) << "*********" << std::endl;
         throw TransactionAbortException (txn->get_txn_id(), AbortReason::LOCK_ON_SHRINKING);
     }
-    if(lock_mode != LockMode::SHARED && lock_mode != LockMode::EXLUCSIVE){
+    if(lock_mode != LockMode::SHARED && lock_mode != LockMode::EXCLUSIVE){
         throw TransactionAbortException(txn->get_txn_id(), AbortReason::ATTEMPTED_INTENTION_LOCK_ON_ROW);
     }
     
@@ -309,7 +309,7 @@ auto Lock_manager::LockRow(Transaction *txn, LockMode lock_mode, const table_oid
     //         throw TransactionAbortException(txn->get_txn_id(), AbortReason::PARTITION_LOCK_NOT_PRESENT);
     //     }
     // } 
-    // else if(lock_mode == LockMode::EXLUCSIVE || lock_mode == LockMode::INTENTION_EXCLUSIVE || lock_mode == LockMode::S_IX){
+    // else if(lock_mode == LockMode::EXCLUSIVE || lock_mode == LockMode::INTENTION_EXCLUSIVE || lock_mode == LockMode::S_IX){
     //     //检查父节点是否上IX锁
     //     if(txn->get_partition_IX_lock_set()->count(parent_partition_l_id)==0){
     //         throw TransactionAbortException(txn->get_txn_id(), AbortReason::PARTITION_LOCK_NOT_PRESENT);

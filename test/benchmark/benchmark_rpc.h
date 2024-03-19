@@ -93,7 +93,7 @@ public:
                         // std::cout << "txn_id: " << txn_id << "row_id: "<< row_id << std::endl; 
                         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, 0);
                         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::INTENTION_EXCLUSIVE, 0, 0);
-                        if(transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXLUCSIVE, 0, 0, row_id)== false){
+                        if(transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, 0, 0, row_id)== false){
                             response->set_ok(false);
                             auto end = std::chrono::high_resolution_clock::now();
                             // 计算代码执行时间
@@ -108,7 +108,7 @@ public:
                         // std::cout << "txn_id: " << txn_id << "row_id: "<< row_id << std::endl; 
                         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, 0);
                         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::INTENTION_EXCLUSIVE, 0, 0);
-                        if(transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXLUCSIVE, 0, 0, row_id)== false){
+                        if(transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, 0, 0, row_id)== false){
                             response->set_ok(false);
                             auto end = std::chrono::high_resolution_clock::now();
                             // 计算代码执行时间

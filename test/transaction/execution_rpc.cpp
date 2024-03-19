@@ -68,7 +68,7 @@ void RemotePlanNodeImpl::ConvertIntoPlan(const ChildPlan* child_plan, std::share
 
                 auto lock_manager = transaction_manager_->getLockManager();
                 lock_manager->LockTable(txn, LockMode::INTENTION_EXCLUSIVE ,tab_id);
-                lock_manager->LockPartition(txn, LockMode::EXLUCSIVE ,tab_id, par_id);
+                lock_manager->LockPartition(txn, LockMode::EXCLUSIVE ,tab_id, par_id);
 
                 transaction_manager_->getKVstore()->put(key, value, txn);
 
