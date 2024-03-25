@@ -304,10 +304,11 @@ int main(){
     //             std::cerr << e.GetInfo() << '\n';
     // }
 
-    // std::signal(SIGINT, [&oracle_background_running, &meta_server](int signal){
+    // std::signal(SIGINT, [&oracle_background_running, &meta_server](int
+    // signal){
     //     oracle_background_running = false;
     //     try{
-    //         meta_server.close_meta_server("/home/t500ttt/RucDDBS/data/");
+    //         meta_server.close_meta_server("/home/xkx/ruc_workspace/RucDDBS2/data/");
     //     }
     //     catch(MetaServerErrorException& e)
     //     {
@@ -316,7 +317,5 @@ int main(){
     //     std::exit(signal);
     // });
 
-    
-    
     return 0;
 }

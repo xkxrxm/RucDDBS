@@ -9,7 +9,7 @@
 
 // DEFINE_string(SERVER_NAME, "", "Server NAME");
 
-class FoccTest : public ::testing::Test
+class TxnManagerTest : public ::testing::Test
 {
 public:
     std::unique_ptr<LogStorage> log_storage_;
@@ -31,7 +31,7 @@ public:
         transaction_manager_ = std::make_unique<TransactionManager>(kv_.get(), log_manager_.get());
     }
 };
-TEST_F(FoccTest, RowTest)
+TEST_F(TxnManagerTest, RowTest)
 {
     Transaction *txn1 = nullptr;
     Transaction *txn2 = nullptr;
@@ -51,7 +51,7 @@ TEST_F(FoccTest, RowTest)
     delete row1;
 }
 
-TEST_F(FoccTest, FoccTest)
+TEST_F(TxnManagerTest, TxnManagerTest)
 {
     // 写入(key1,value1)
     // 定义一个空事务指针

@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "transaction_manager.h"
 
-class FoccTest : public ::testing::Test
+class TxnManagerTest : public ::testing::Test
 {
 public:
     std::unique_ptr<LogStorage> log_storage_;
@@ -30,7 +30,7 @@ public:
 };
 
 // R1a, W1a, R2a, W2a
-TEST_F(FoccTest, FoccTest1)
+TEST_F(TxnManagerTest, FoccTest1)
 {
     // 写入(key1,value1)
     // 定义一个空事务指针
@@ -52,7 +52,7 @@ TEST_F(FoccTest, FoccTest1)
 }
 
 // R1a, W1a, R2a
-TEST_F(FoccTest, FoccTest2)
+TEST_F(TxnManagerTest, FoccTest2)
 {
     // 写入(key1,value1)
     // 定义一个空事务指针
@@ -74,7 +74,7 @@ TEST_F(FoccTest, FoccTest2)
 }
 
 // R1a, W1a, R2a, C1
-TEST_F(FoccTest, FoccTest3)
+TEST_F(TxnManagerTest, FoccTest3)
 {
     // 写入(key1,value1)
     // 定义一个空事务指针
@@ -92,4 +92,10 @@ TEST_F(FoccTest, FoccTest3)
     focc_->active_storage(txn2);
 
     ASSERT_EQ(focc_->validate(txn1), false);
+}
+
+int main(int argc, char **argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

@@ -11,7 +11,9 @@ DEFINE_string(listen_addr, "", "Server listen address, may be IPV4/IPV6/UDS."
             " If this is set, the flag port will be ignored");
 DEFINE_int32(idle_timeout_s, -1, "Connection will be closed if there is no "
              "read/write operations during the last `idle_timeout_s'");
-DEFINE_string(store_path, "/home/t500ttt/RucDDBS/data2", "server2 store");
+DEFINE_string(store_path,
+              "/home/xkx/ruc_workspace/RucDDBS2/data2",
+              "server2 store");
 
 int main(int argc, char **argv){
     gflags::ParseCommandLineFlags(&argc, &argv, true);

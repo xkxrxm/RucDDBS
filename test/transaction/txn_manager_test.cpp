@@ -1,0 +1,49 @@
+#include <filesystem>
+
+#include "focc.h"
+#include "gtest/gtest.h"
+#include "transaction_manager.h"
+
+DEFINE_string(SERVER_NAME, "", "Server NAME");
+
+int main(int argc, char **argv)
+{
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
+class TxnManagerTest : public ::testing::Test
+{
+public:
+    std::unique_ptr<LogStorage> log_storage_;
+    std::unique_ptr<LogManager> log_manager_;
+    std::unique_ptr<KVStore> kv_;
+    std::unique_ptr<TransactionManager> transaction_manager_;
+    std::unique_ptr<Focc> focc_;
+
+public:
+    void SetUp() override
+    {
+        std::string dir = "./data";
+        log_storage_ = std::make_unique<LogStorage>("test_db");
+        log_manager_ = std::make_unique<LogManager>(log_storage_.get());
+        if (std::filesystem::exists(dir))
+        {
+            std::filesystem::remove_all(dir);
+            std::filesystem::remove(dir);
+        }
+        kv_ = std::make_unique<KVStore>(dir, log_manager_.get());
+        transaction_manager_ =
+            std::make_unique<TransactionManager>(kv_.get(), log_manager_.get());
+        focc_ = std::make_unique<Focc>();
+        focc_->init();
+    }
+};
+
+TEST_F(TxnManagerTest, TxnManagerTest1)
+{
+    Transaction *txn = nullptr;
+    transaction_manager_->Begin(txn);
+    ASSERT_NE(txn, nullptr);
+}
