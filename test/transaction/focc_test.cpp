@@ -23,21 +23,20 @@ public:
             std::filesystem::remove(dir);
         }
         kv_ = std::make_unique<KVStore>(dir, log_manager_.get());
-        transaction_manager_ = std::make_unique<TransactionManager>(kv_.get(), log_manager_.get());
         focc_ = std::make_unique<Focc>();
         focc_->init();
+        transaction_manager_ = std::make_unique<TransactionManager>(
+            kv_.get(), log_manager_.get(), focc_.get());
     }
 };
 
 // R1a, W1a, R2a, W2a
 TEST_F(TxnManagerTest, FoccTest1)
 {
-    // 写入(key1,value1)
-    // 定义一个空事务指针
     Transaction *txn1 = nullptr;
     Transaction *txn2 = nullptr;
-    transaction_manager_->Begin(txn1, 1);
-    transaction_manager_->Begin(txn2, 2);
+    transaction_manager_->Begin(txn1);
+    transaction_manager_->Begin(txn2);
     Row_occ *row1 = new Row_occ(std::string("key1"));
     Row_occ *row2 = new Row_occ(std::string("key2"));
 
@@ -54,12 +53,10 @@ TEST_F(TxnManagerTest, FoccTest1)
 // R1a, W1a, R2a
 TEST_F(TxnManagerTest, FoccTest2)
 {
-    // 写入(key1,value1)
-    // 定义一个空事务指针
     Transaction *txn1 = nullptr;
     Transaction *txn2 = nullptr;
-    transaction_manager_->Begin(txn1, 1);
-    transaction_manager_->Begin(txn2, 2);
+    transaction_manager_->Begin(txn1);
+    transaction_manager_->Begin(txn2);
     Row_occ *row1 = new Row_occ(std::string("key1"));
 
     row1->access(txn1, access_t::RD);
@@ -76,12 +73,10 @@ TEST_F(TxnManagerTest, FoccTest2)
 // R1a, W1a, R2a, C1
 TEST_F(TxnManagerTest, FoccTest3)
 {
-    // 写入(key1,value1)
-    // 定义一个空事务指针
     Transaction *txn1 = nullptr;
     Transaction *txn2 = nullptr;
-    transaction_manager_->Begin(txn1, 1);
-    transaction_manager_->Begin(txn2, 2);
+    transaction_manager_->Begin(txn1);
+    transaction_manager_->Begin(txn2);
     Row_occ *row1 = new Row_occ(std::string("key1"));
 
     row1->access(txn1, access_t::RD);

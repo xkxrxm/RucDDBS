@@ -191,7 +191,9 @@ public:
             std::make_shared<std::unordered_set<IP_Port, IP_PortHash>>();
         is_distributed = false;
         prev_lsn_ = INVALID_LSN;
-        thread_id_ = std::this_thread::get_id();   
+        thread_id_ = std::this_thread::get_id();
+        read_set_ = new f_set_ent(txn_id_, this, 0);
+        write_set_ = new f_set_ent(txn_id_, this, 0);
     };
 
     ~Transaction(){};

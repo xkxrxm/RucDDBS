@@ -49,3 +49,49 @@ uint64_t TransactionManager::getTimestampFromServer(){
     }
     return response.timestamp();
 }
+
+bool TransactionManager::Abort(Transaction *txn)
+{
+    assert(false);
+}
+
+bool TransactionManager::AbortSingle(Transaction *txn, bool use_raft)
+{
+    focc_->finish(txn);
+    // Remove txn from txn_map
+    std::unique_lock<std::shared_mutex> l(txn_map_mutex);
+    txn_map.erase(txn->get_txn_id());
+    // Release the global transaction latch.
+    global_txn_latch_.unlock_shared();
+    return true;
+}
+
+bool TransactionManager::Commit(Transaction *txn)
+{
+    assert(false);
+}
+bool TransactionManager::CommitSingle(Transaction *txn,
+                                      bool sync_write_set,
+                                      bool use_raft)
+{
+    bool check = focc_->validate(txn);
+    focc_->finish(txn);
+    std::unique_lock<std::shared_mutex> l(txn_map_mutex);
+    txn_map.erase(txn->get_txn_id());
+    // Release the global transaction latch.
+    global_txn_latch_.unlock_shared();
+    return check;
+}
+
+bool TransactionManager::PrepareCommit(Transaction *txn)
+{
+    return focc_->validate(txn);
+}
+
+bool TransactionManager::ReadRow(Transaction *txn, Row_occ *row)
+{
+    bool rc = row->access(txn, RD);
+    if (rc == true)
+        focc_->active_storage(txn);
+    return rc;
+}

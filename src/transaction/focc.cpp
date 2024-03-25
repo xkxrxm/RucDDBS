@@ -13,10 +13,7 @@ void Focc::init()
 
 bool Focc::validate(Transaction *&txn)
 {
-    bool rc;
-    // uint64_t starttime = TransactionManager::getTimestampFromServer();
-    rc = central_validate(txn);
-    return rc;
+    return central_validate(txn);
 }
 
 void Focc::finish(Transaction *&txn)

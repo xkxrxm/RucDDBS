@@ -1,3 +1,4 @@
+#pragma once
 #include <semaphore.h>
 
 #include "txn.h"
@@ -28,7 +29,8 @@ private:
     bool test_valid(f_set_ent *set1, f_set_ent *set2);
     // bool get_rw_set(Transaction *&txn, f_set_ent *&rset, f_set_ent *&wset);
 
-    // // "history" stores write set of transactions with tn >= smallest running tn
+    // // "history" stores write set of transactions with txn_id >= smallest
+    // running txn_id
 
     f_set_ent *active;
     uint64_t active_len;

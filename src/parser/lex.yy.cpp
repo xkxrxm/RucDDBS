@@ -925,7 +925,7 @@ YY_DECL
     do_action: /* This label is used only to access EOF actions. */
 
         switch (yy_act)
-	{ /* beginning of action switch */
+        { /* beginning of action switch */
 			case 0: /* must back up */
 			/* undo the effects of YY_DO_BEFORE_ACTION */
 			*yy_cp = (yy_hold_char);
@@ -1338,7 +1338,7 @@ default:
     YY_FATAL_ERROR("fatal flex scanner internal error--no action found");
 } /* end of action switch */
     }     /* end of scanning one token */
-	} /* end of user's declarations */
+        } /* end of user's declarations */
 } /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer

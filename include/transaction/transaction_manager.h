@@ -1,10 +1,11 @@
 #pragma once
 
+#include <shared_mutex>
+
+#include "Inmemory/KVStore_new.h"
+#include "focc.h"
 #include "meta_service.pb.h"
 #include "transaction.h"
-#include "Inmemory/KVStore_new.h"
-
-#include <shared_mutex>
 
 enum class ConcurrencyMode
 {
@@ -18,6 +19,7 @@ private:
     LogManager *log_manager_;
     KVStore *kv_;
     ConcurrencyMode concurrency_mode_;
+    Focc *focc_;
     /** The global transaction latch is used for checkpointing. */
     std::shared_mutex global_txn_latch_;
 
@@ -26,11 +28,13 @@ public:
     explicit TransactionManager(
         KVStore *kv,
         LogManager *log_manager = nullptr,
+        Focc *focc = nullptr,
         ConcurrencyMode concurrency_mode = ConcurrencyMode::OCC)
+        : focc_(focc),
+          kv_(kv),
+          log_manager_(log_manager),
+          concurrency_mode_(concurrency_mode)
     {
-        log_manager_ = log_manager;
-        kv_ = kv;
-        concurrency_mode_ = concurrency_mode;
     }
 
     ConcurrencyMode getConcurrencyMode() { return concurrency_mode_; }
@@ -78,4 +82,6 @@ public:
 
     /** Resumes all transactions, used for checkpointing. */
     void ResumeTransactions(){global_txn_latch_.unlock();}
+
+    bool ReadRow(Transaction *txn, Row_occ *row);
 };

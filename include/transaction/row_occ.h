@@ -51,15 +51,15 @@ private:
 class f_set_ent
 {
 public:
-    f_set_ent()
+    f_set_ent(txn_id_t txn_id,
+              Transaction *txn,
+              u_int32_t set_size = 0,
+              Row_occ **rows = nullptr,  //[MAX_WRITE_SET];
+              f_set_ent *next = nullptr)
+        : txn_id(txn_id), txn(txn), next(next), set_size(set_size), rows(rows)
     {
-        next = nullptr;
-        tn = 0;
-        txn = nullptr;
-        set_size = 0;
-        rows = nullptr;
     }
-    txn_id_t tn;
+    txn_id_t txn_id;
     Transaction *txn;
     u_int32_t set_size;
     Row_occ **rows;  //[MAX_WRITE_SET];
