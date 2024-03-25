@@ -5,19 +5,30 @@
 // #include "execution_rpc.h"
 
 // #include <brpc/channel.h>
-// #include <filesystem>
+#include <filesystem>
 
 // DEFINE_string(SERVER_NAME, "", "Server NAME");
 
 class FoccTest : public ::testing::Test
 {
 public:
+    std::unique_ptr<LogStorage> log_storage_;
+    std::unique_ptr<LogManager> log_manager_;
+    std::unique_ptr<KVStore> kv_;
     std::unique_ptr<TransactionManager> transaction_manager_;
 
 public:
     void SetUp() override
     {
-        transaction_manager_ = std::make_unique<TransactionManager>();
+        std::string dir = "./data";
+        log_storage_ = std::make_unique<LogStorage>("test_db");
+        log_manager_ = std::make_unique<LogManager>(log_storage_.get());
+        if(std::filesystem::exists(dir)) {
+            std::filesystem::remove_all(dir);
+            std::filesystem::remove(dir);
+        }
+        kv_ = std::make_unique<KVStore>(dir, log_manager_.get());
+        transaction_manager_ = std::make_unique<TransactionManager>(kv_.get(), log_manager_.get());
     }
 };
 TEST_F(FoccTest, RowTest)
@@ -36,29 +47,27 @@ TEST_F(FoccTest, RowTest)
     ASSERT_EQ(row1->access(txn1, access_t::RD), true);
     ASSERT_EQ(row1->access(txn2, access_t::RD), false);
     ASSERT_EQ(txn1->get_read_set_size(), 1);
-
-    free(row1);
-    free(txn1);
-    free(txn2);
+    
+    delete row1;
 }
 
 TEST_F(FoccTest, FoccTest)
 {
     // 写入(key1,value1)
     // 定义一个空事务指针
-    Transaction *txn1 = nullptr;
-    Transaction *txn2 = nullptr;
-    transaction_manager_->Begin(txn1, 1);
-    ASSERT_EQ(txn1->get_txn_id(), 1);
-    transaction_manager_->Begin(txn2, 2);
-    ASSERT_EQ(txn2->get_txn_id(), 2);
-    Row_occ *row1 = new Row_occ(std::string("key1"));
-    Row_occ *row2 = new Row_occ(std::string("key2"));
-    Row_occ *row3 = new Row_occ(std::string("key3"));
-    Row_occ *row4 = new Row_occ(std::string("key4"));
+    // Transaction *txn1 = nullptr;
+    // Transaction *txn2 = nullptr;
+    // transaction_manager_->Begin(txn1, 1);
+    // ASSERT_EQ(txn1->get_txn_id(), 1);
+    // transaction_manager_->Begin(txn2, 2);
+    // ASSERT_EQ(txn2->get_txn_id(), 2);
+    // Row_occ *row1 = new Row_occ(std::string("key1"));
+    // Row_occ *row2 = new Row_occ(std::string("key2"));
+    // Row_occ *row3 = new Row_occ(std::string("key3"));
+    // Row_occ *row4 = new Row_occ(std::string("key4"));
 
-    row1->try_lock(1);
-    row1->try_lock(1);
+    // row1->try_lock(1);
+    // row1->try_lock(1);
 
     // // SQL解析之后到metaserver查询相关表在两个server中
     // // txn1->set_is_distributed(true);

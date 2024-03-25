@@ -59,11 +59,10 @@ bool Focc::central_validate(Transaction *&txn)
     bool valid = true;
     // OptCC is centralized. No need to do per partition malloc.
     f_set_ent *wset = txn->get_write_set();
-    f_set_ent *rset = txn->get_read_set();
     bool readonly = (wset->set_size == 0);
     f_set_ent *ent;
-    uint64_t checked = 0;
-    uint64_t active_checked = 0;
+    // uint64_t checked = 0;
+    // uint64_t active_checked = 0;
 
     sem_wait(&_semaphore);
     // starttime = TransactionManager::getTimestampFromServer();
@@ -98,7 +97,7 @@ bool Focc::central_validate(Transaction *&txn)
             valid = test_valid(ract, wset);
             if (!valid)
             {
-                break;
+                goto final;
             }
         }
     }
@@ -139,7 +138,6 @@ final:
 void Focc::central_finish(Transaction *&txn)
 {
     f_set_ent *wset = txn->get_write_set();
-    f_set_ent *rset = txn->get_read_set();
 
     // only update active & tnc for non-readonly transactions
     // uint64_t starttime = TransactionManager::getTimestampFromServer();

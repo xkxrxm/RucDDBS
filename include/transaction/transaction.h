@@ -2,8 +2,8 @@
 
 #include "row_occ.h"
 #include "txn.h"
-// #include "recovery/log_record.h"
-// #include "recovery/log_manager.h"
+#include "recovery/log_record.h"
+#include "recovery/log_manager.h"
 #include <cstdint>
 #include <unordered_set>
 #include <memory>
@@ -15,7 +15,6 @@
 
 using lsn_t = int32_t;
 using txn_id_t = uint64_t;
-static constexpr int INVALID_LSN = -1;    
 
 enum class TransactionState { DEFAULT, GROWING, SHRINKING, COMMITTED, ABORTED, PREPARED };
 enum class IsolationLevel { READ_UNCOMMITTED, REPEATABLE_READ, READ_COMMITTED, SERIALIZABLE };

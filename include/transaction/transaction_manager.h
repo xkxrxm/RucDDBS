@@ -2,7 +2,7 @@
 
 #include "meta_service.pb.h"
 #include "transaction.h"
-// #include "Inmemory/KVStore_new.h"
+#include "Inmemory/KVStore_new.h"
 
 #include <shared_mutex>
 
@@ -15,8 +15,8 @@ enum class ConcurrencyMode
 class TransactionManager
 {
 private:
-    // LogManager *log_manager_;
-    // KVStore *kv_;
+    LogManager *log_manager_;
+    KVStore *kv_;
     ConcurrencyMode concurrency_mode_;
     /** The global transaction latch is used for checkpointing. */
     std::shared_mutex global_txn_latch_;
@@ -24,23 +24,27 @@ private:
 public: 
     ~TransactionManager() = default;
     explicit TransactionManager(
-        // KVStore *kv,
-        // LogManager *log_manager = nullptr,
+        KVStore *kv,
+        LogManager *log_manager = nullptr,
         ConcurrencyMode concurrency_mode = ConcurrencyMode::OCC)
     {
-        // log_manager_ = log_manager;
-        // kv_ = kv;
+        log_manager_ = log_manager;
+        kv_ = kv;
         concurrency_mode_ = concurrency_mode;
     }
+
     ConcurrencyMode getConcurrencyMode() { return concurrency_mode_; }
+
     void SetConcurrencyMode(ConcurrencyMode concurrency_mode)
     {
         concurrency_mode_ = concurrency_mode;
     }
-    // KVStore* getKVstore() {return kv_; }
+
+    KVStore* getKVstore() {return kv_; }
     
     /* The transaction map is a local list of all the running transactions in the local node. */
     static std::unordered_map<txn_id_t, Transaction *> txn_map;
+    
     static std::shared_mutex txn_map_mutex;
 
     static Transaction *getTransaction(txn_id_t txn_id) {

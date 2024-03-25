@@ -1,19 +1,30 @@
 #include "focc.h"
-
+#include <filesystem>
 #include "gtest/gtest.h"
 #include "transaction_manager.h"
 
 class FoccTest : public ::testing::Test
 {
 public:
+    std::unique_ptr<LogStorage> log_storage_;
+    std::unique_ptr<LogManager> log_manager_;
+    std::unique_ptr<KVStore> kv_;
     std::unique_ptr<TransactionManager> transaction_manager_;
     std::unique_ptr<Focc> focc_;
 
 public:
     void SetUp() override
     {
+         std::string dir = "./data";
+        log_storage_ = std::make_unique<LogStorage>("test_db");
+        log_manager_ = std::make_unique<LogManager>(log_storage_.get());
+        if(std::filesystem::exists(dir)) {
+            std::filesystem::remove_all(dir);
+            std::filesystem::remove(dir);
+        }
+        kv_ = std::make_unique<KVStore>(dir, log_manager_.get());
+        transaction_manager_ = std::make_unique<TransactionManager>(kv_.get(), log_manager_.get());
         focc_ = std::make_unique<Focc>();
-        transaction_manager_ = std::make_unique<TransactionManager>();
         focc_->init();
     }
 };
@@ -38,11 +49,6 @@ TEST_F(FoccTest, FoccTest1)
     txn2->add_write_set(row2);
     ASSERT_EQ(focc_->validate(txn1), true);
     ASSERT_EQ(focc_->validate(txn2), true);
-
-    free(row1);
-    free(row2);
-    free(txn1);
-    free(txn2);
 }
 
 // R1a, W1a, R2a
@@ -65,10 +71,6 @@ TEST_F(FoccTest, FoccTest2)
 
     focc_->finish(txn1);
     ASSERT_EQ(row1->access(txn2, access_t::RD), true);
-
-    free(row1);
-    free(txn1);
-    free(txn2);
 }
 
 // R1a, W1a, R2a, C1
@@ -90,8 +92,4 @@ TEST_F(FoccTest, FoccTest3)
     focc_->active_storage(txn2);
 
     ASSERT_EQ(focc_->validate(txn1), false);
-
-    free(row1);
-    free(txn1);
-    free(txn2);
 }
