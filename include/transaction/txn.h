@@ -55,8 +55,11 @@ class WriteRecord {
 };
 
 enum class Lock_data_type {TABLE, PARTITION, ROW};
-enum class LockMode { SHARED, EXCLUSIVE, INTENTION_SHARED, INTENTION_EXCLUSIVE, S_IX };
-enum access_t {RD, WR, XP, SCAN};
-
-
-
+enum class LockMode
+{
+    SHARED,
+    EXCLUSIVE,
+    INTENTION_SHARED,
+    INTENTION_EXCLUSIVE,
+    S_IX
+};

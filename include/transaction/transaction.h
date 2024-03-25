@@ -1,7 +1,7 @@
 #pragma once
 
+#include "row_occ.h"
 #include "txn.h"
-// #include "row_occ.h"
 // #include "recovery/log_record.h"
 // #include "recovery/log_manager.h"
 #include <cstdint>
@@ -101,30 +101,32 @@ class TransactionAbortException : public std::exception {
 class Transaction
 {
 private:
-    txn_id_t txn_id_;  //从metaServer中获取的全局唯一严格递增的混合逻辑时间戳
+    txn_id_t txn_id_;  // 从metaServer中获取的全局唯一严格递增的混合逻辑时间戳
     TransactionState state_; 
     IsolationLevel isolation_ ;
     std::thread::id thread_id_;
     uint64_t start_time;
 
-    lsn_t prev_lsn_; //// 当前事务执行的最后一条操作对应的lsn
-    // f_set_ent* write_set_;  // 事务包含的所有写操作
-    // f_set_ent* read_set_;   // 事务包含的所有读操作
+    lsn_t prev_lsn_;  // 当前事务执行的最后一条操作对应的lsn
+    f_set_ent *write_set_;  // 事务包含的所有写操作
+    f_set_ent *read_set_;   // 事务包含的所有读操作
 
-    bool is_distributed; //是否是分布式事务
+    bool is_distributed;  // 是否是分布式事务
     std::shared_ptr<std::unordered_set<IP_Port, IP_PortHash>>
-        distributed_plan_execution_node_;  //分布式执行计划涉及节点
+        distributed_plan_execution_node_;  // 分布式执行计划涉及节点
     IP_Port coordinator_ip_;               // 协调者节点
 
 public:
-    // inline uint32_t get_write_set_size() const
-    // {
-    //     return write_set_->set_size;
-    // }
-    // inline uint32_t get_read_set_size() const
-    // {
-    //     return read_set_->set_size;
-    // }
+    inline uint32_t get_write_set_size() const
+    {
+        return write_set_->set_size;
+    }
+    inline uint32_t get_read_set_size() const
+    {
+        return read_set_->set_size;
+    }
+    void add_write_set(Row_occ *row);
+    void add_read_set(Row_occ *row);
 
     inline uint64_t get_start_time() const
     {
@@ -142,14 +144,14 @@ public:
     inline lsn_t get_prev_lsn() const {return prev_lsn_; }
     inline void set_prev_lsn(lsn_t prev_lsn) { prev_lsn_ = prev_lsn; }
 
-    // inline f_set_ent* get_write_set()
-    // {
-    //     return write_set_;
-    // }
-    // inline f_set_ent* &get_read_set()
-    // {
-    //     return read_set_;
-    // }
+    inline f_set_ent *get_write_set()
+    {
+        return write_set_;
+    }
+    inline f_set_ent *&get_read_set()
+    {
+        return read_set_;
+    }
 
     inline bool get_is_distributed() const { return is_distributed; } //如果查询只涉及一个节点, 那么is_distributed=false, 否则为true
     inline void set_is_distributed(bool val) {is_distributed = val; }

@@ -1,13 +1,13 @@
-// #include "focc.h"
+#include "focc.h"
 
-// void Focc::init()
-// {
-//     sem_init(&_semaphore, 0, 1);
-//     tnc = 0;
-//     active_len = 0;
-//     active = NULL;
-//     lock_all = false;
-// }
+void Focc::init()
+{
+    sem_init(&_semaphore, 0, 1);
+    tnc = 0;
+    active_len = 0;
+    active = NULL;
+    lock_all = false;
+}
 
 // bool Focc::validate(Transaction *&txn)
 // {

@@ -1,4 +1,5 @@
-#include "transaction_manager.h"
+#include <semaphore.h>
+
 #include "txn.h"
 
 #define STACK_PUSH(stack, entry) \
@@ -7,6 +8,8 @@
         stack = entry;           \
     }
 
+class Transaction;
+class f_set_ent;
 class Focc
 {
 public:
@@ -22,12 +25,12 @@ private:
     bool central_validate(Transaction *&txn);
 
     bool central_finish(Transaction *&txn);
-    // bool test_valid(f_set_ent *set1, f_set_ent *set2);
+    bool test_valid(f_set_ent *set1, f_set_ent *set2);
     // bool get_rw_set(Transaction *&txn, f_set_ent *&rset, f_set_ent *&wset);
 
     // // "history" stores write set of transactions with tn >= smallest running tn
 
-    // f_set_ent *active;
+    f_set_ent *active;
     uint64_t active_len;
     volatile uint64_t tnc;  // transaction number counter
     pthread_mutex_t latch;

@@ -1,10 +1,23 @@
-#include "transaction.h"
+#pragma once
+
 #include <semaphore.h>
+
+#include <string>
+using txn_id_t = uint64_t;
+
+class Transaction;
+enum access_t
+{
+    RD,
+    WR,
+    XP,
+    SCAN
+};
 class Row_occ
 {
 public:
     void init(std::string key);
-    // bool access(Transaction *txn, access_t type);
+    bool access(Transaction *txn, access_t type);
     void latch();
     // ts is the start_ts of the validating txn
     bool validate(uint64_t ts);
@@ -15,6 +28,10 @@ public:
     bool try_lock(uint64_t tid);
     void release_lock(uint64_t tid);
     uint64_t check_lock();
+    Row_occ(std::string key)
+    {
+        init(key);
+    }
     /* --------------- only used for focc -----------------------*/
 private:
     pthread_mutex_t *_latch;
@@ -22,6 +39,7 @@ private:
     bool blatch;
 
     std::string _key;
+    std::string _value;
     // the last update time
     uint64_t wts;
 
@@ -33,7 +51,14 @@ private:
 class f_set_ent
 {
 public:
-    f_set_ent();
+    f_set_ent()
+    {
+        next = nullptr;
+        tn = 0;
+        txn = nullptr;
+        set_size = 0;
+        rows = nullptr;
+    }
     txn_id_t tn;
     Transaction *txn;
     u_int32_t set_size;
