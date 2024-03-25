@@ -15,16 +15,16 @@ class Focc
 public:
     void init();
     bool validate(Transaction *&txn);
-    bool finish(Transaction *&txn);
+    void finish(Transaction *&txn);
     void active_storage(Transaction *&txn);
-    volatile bool lock_all;
-    uint64_t lock_txn_id;
+    // volatile bool lock_all;
+    // uint64_t lock_txn_id;
 
 private:
     // serial validation in the original OCC paper.
     bool central_validate(Transaction *&txn);
 
-    bool central_finish(Transaction *&txn);
+    void central_finish(Transaction *&txn);
     bool test_valid(f_set_ent *set1, f_set_ent *set2);
     // bool get_rw_set(Transaction *&txn, f_set_ent *&rset, f_set_ent *&wset);
 
