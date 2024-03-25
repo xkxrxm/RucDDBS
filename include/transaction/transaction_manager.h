@@ -1,45 +1,43 @@
 #pragma once
 
-#include "Transaction.h"
-#include "Lock_manager.h"
 #include "meta_service.pb.h"
-// #include "storage/KVStore.h"
-// #include "Inmemory/KVStore.h"
-// #include "Inmemory/KVStore_vec.h"
-// #include "storage/KVStore.h"
-#include "Inmemory/KVStore_new.h"
+#include "transaction.h"
+// #include "Inmemory/KVStore_new.h"
 
 #include <shared_mutex>
 
-enum class ConcurrencyMode { TWO_PHASE_LOCKING = 0 };
+enum class ConcurrencyMode
+{
+    TWO_PHASE_LOCKING = 0,
+    OCC = 1,
+};
 
 class TransactionManager
 {
 private:
-    Lock_manager *lock_manager_;
-    LogManager *log_manager_;
-    KVStore *kv_;
+    // LogManager *log_manager_;
+    // KVStore *kv_;
     ConcurrencyMode concurrency_mode_;
-
     /** The global transaction latch is used for checkpointing. */
     std::shared_mutex global_txn_latch_;
 
-    void ReleaseLocks(Transaction *txn);
-
 public: 
     ~TransactionManager() = default;
-    explicit TransactionManager(Lock_manager *lock_manager, KVStore *kv, LogManager *log_manager = nullptr, 
-            ConcurrencyMode concurrency_mode = ConcurrencyMode::TWO_PHASE_LOCKING) {
-        lock_manager_ = lock_manager;
-        log_manager_ = log_manager;
-        kv_ = kv;
+    explicit TransactionManager(
+        // KVStore *kv,
+        // LogManager *log_manager = nullptr,
+        ConcurrencyMode concurrency_mode = ConcurrencyMode::OCC)
+    {
+        // log_manager_ = log_manager;
+        // kv_ = kv;
         concurrency_mode_ = concurrency_mode;
     }
-
     ConcurrencyMode getConcurrencyMode() { return concurrency_mode_; }
-    void SetConcurrencyMode(ConcurrencyMode concurrency_mode) { concurrency_mode_ = concurrency_mode; }
-    Lock_manager *getLockManager() { return lock_manager_; }
-    KVStore* getKVstore() {return kv_; }
+    void SetConcurrencyMode(ConcurrencyMode concurrency_mode)
+    {
+        concurrency_mode_ = concurrency_mode;
+    }
+    // KVStore* getKVstore() {return kv_; }
     
     /* The transaction map is a local list of all the running transactions in the local node. */
     static std::unordered_map<txn_id_t, Transaction *> txn_map;
@@ -55,7 +53,7 @@ public:
         return txn;
     }
 
-    uint64_t getTimestampFromServer();
+    static uint64_t getTimestampFromServer();
 
     // 从meta_server获取时间戳作为txn id
     Transaction* Begin(Transaction*& txn, IsolationLevel isolation_level=IsolationLevel::SERIALIZABLE);
@@ -76,5 +74,4 @@ public:
 
     /** Resumes all transactions, used for checkpointing. */
     void ResumeTransactions(){global_txn_latch_.unlock();}
-    
 };

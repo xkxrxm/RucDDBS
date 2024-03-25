@@ -18,7 +18,10 @@ Participant::Participant(TransactionManager *transaction_maneger)
             }
             //当前事务收到prepare请求，进入prepared状态
             brpc::Channel channel;
-            if (channel.Init(txn.second->get_coor_ip().ip_addr.c_str(), txn.second->get_coor_ip().port, &options) != 0) {
+            if (channel.Init(txn.second->get_coordinator_ip().ip_addr.c_str(),
+                             txn.second->get_coordinator_ip().port,
+                             &options) != 0)
+            {
                 LOG(ERROR) << "Fail to initialize channel";
                 continue;
             }
@@ -65,8 +68,10 @@ Participant::Participant(TransactionManager *transaction_maneger)
                     brpc::Controller cntl;
                     meta_service::getNewCoorRequest newcoor_request;
                     meta_service::getNowCoorResponse newcoor_response;
-                    newcoor_request.set_fault_ip(txn.second->get_coor_ip().ip_addr.c_str());
-                    newcoor_request.set_port(txn.second->get_coor_ip().port);
+                    newcoor_request.set_fault_ip(
+                        txn.second->get_coordinator_ip().ip_addr.c_str());
+                    newcoor_request.set_port(
+                        txn.second->get_coordinator_ip().port);
                     stub_metaserver.GetNewCoordinator(&cntl, &newcoor_request, &newcoor_response, NULL);
                     std::string coor_ip = newcoor_response.new_coor_ip();
                     int coor_port = newcoor_response.port();

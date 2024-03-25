@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <string.h>
 #include <iostream>
-#include "Transaction.h"
+#include "transaction.h"
 #include "transaction_manager.h"
 
 using lsn_t = int32_t;

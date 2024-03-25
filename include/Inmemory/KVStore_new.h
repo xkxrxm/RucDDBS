@@ -1,7 +1,7 @@
 #pragma once
 
 #include "storage/KVStore_beta.h"
-#include "transaction/Transaction.h"
+#include "transaction/transaction.h"
 #include "recovery/log_manager.h"
 
 class KVStore : public KVStore_beta{

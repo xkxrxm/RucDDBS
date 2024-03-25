@@ -1,0 +1,1 @@
+create table t1(id int) partition by range  ( id ) (partition less than (100));
