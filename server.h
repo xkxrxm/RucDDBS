@@ -127,7 +127,7 @@ public:
                   << " to " << cntl->local_side()
                   << ": " << request->sql_statement();
 
-        cout << request->sql_statement() << "id = "<< request->txn_id() <<endl;
+        cout << request->sql_statement() << "txn_id = "<< request->txn_id() <<endl;
         txn_id_t txn_id = request->txn_id();
         Context* context = new Context(nullptr, transaction_manager_);
         try {
@@ -155,11 +155,13 @@ public:
         
         brpc::ClosureGuard done_guard(done);
         brpc::Controller* cntl = static_cast<brpc::Controller*>(cntl_base);
+        uint64_t txn_id = request->txn_id();
+
         LOG(INFO) << "Received request[log_id=" << cntl->log_id() 
                   << "] from " << cntl->remote_side() 
-                  << " to " << cntl->local_side();
+                  << " to " << cntl->local_side()
+                  << "[txn_id= "<< txn_id <<" ]";
         
-        uint64_t txn_id = request->txn_id();
         Transaction* txn = transaction_manager_->getTransaction(txn_id);
         if(txn == nullptr) {
             std::unique_lock<std::shared_mutex> l(transaction_manager_->txn_map_mutex);

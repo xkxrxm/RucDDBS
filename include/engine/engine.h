@@ -13,6 +13,7 @@
 #include <iomanip>
 #include "session.pb.h"
 #include "transaction_manager.h"
+#include <butil/logging.h>
 # define DB_NAME "RucDDBS"
 using namespace std;
 #define debug_test 1
@@ -97,7 +98,7 @@ public:
     vector<shared_ptr<record>> exec_op(){
         prt_op();
         auto ret = next_node->exec_op();
-        cout << "select get" << endl;
+        LOG(INFO) << "select get" << endl;
         vector<shared_ptr<record>> res;
         if(int(ret.size()) == 0){
             return res;
@@ -123,6 +124,7 @@ public:
         else if(auto x = std::dynamic_pointer_cast<ast::IntLit>(conds->rhs)){
             int lf_index = -1;
             for(int i = 0; i < int(ret[0]->row.size()); i++){
+                // now we only support tab_name.col_name = value condition,only col_name may cause error
                 if(ret[0]->row[i]->tab_name == conds->lhs->tab_name && ret[0]->row[i]->col_name == conds->lhs->col_name){
                     lf_index = i;
                 }
@@ -150,9 +152,9 @@ public:
     vector<shared_ptr<record>> exec_op(){
         prt_op();
         //Lock
-        std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        auto o_id = table_name_id_map[tab_name];
-        l.unlock();
+        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
+        // auto o_id = table_name_id_map[tab_name];
+        // l.unlock();
         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, rec->row[0]->str);
@@ -177,9 +179,9 @@ public:
         auto res = next_node->exec_op();
 
         //Lock
-        std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        auto o_id = table_name_id_map[tab_name];
-        l.unlock();
+        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
+        // auto o_id = table_name_id_map[tab_name];
+        // l.unlock();
         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
@@ -209,9 +211,9 @@ public:
         auto res = next_node->exec_op();
 
         //Lock
-        std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        auto o_id = table_name_id_map[tab_name];
-        l.unlock();
+        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
+        // auto o_id = table_name_id_map[tab_name];
+        // l.unlock();
         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
@@ -223,7 +225,7 @@ public:
             auto key = "/store_data/" + tab_name + "/" + to_string(par) + "/" + to_string(iter->row[0]->str);
             auto row = iter->row;
             
-            cout << "check " << endl;
+            LOG(INFO) << "update " << endl;
             for(int i = 0 ; i < int(set_col_index.size()); i++){
                 int col = set_col_index[i];
                 cout << col << endl;
@@ -302,11 +304,11 @@ public:
         prt_op();
 
         //Lock
-        cout << "lock " << endl;
-        std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        auto o_id = table_name_id_map[tabs];
-        l.unlock();
-        cout << "unlock" << endl;
+        // cout << "lock " << endl;
+        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
+        // auto o_id = table_name_id_map[tabs];
+        // l.unlock();
+        // cout << "unlock" << endl;
         // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_SHARED, o_id);
         // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::SHARED, o_id, par);
         cout << "txn " << endl;

@@ -49,17 +49,18 @@ int main(){
         request.set_txn_id(txn_id);
         cntl.set_log_id(log_id ++);
 
-        cout <<"txn_id = " <<txn_id << endl;
+        // cout <<"txn_id = " <<txn_id << endl;
         stub.SQL_Transfer(&cntl, &request, &response, NULL);
         
         // if(response.txn_id())
         txn_id = response.txn_id();
         
-        cout << response.txn_id() << endl <<  response.txt() <<endl;
+        // cout << response.txn_id() << endl <<  response.txt() <<endl;
+        cout << response.txt() <<endl;
         if (!cntl.Failed()) {
-            LOG(INFO) << "Received response from " << cntl.remote_side()
-                << " to " << cntl.local_side()
-                << " latency=" << cntl.latency_us() << "us";
+            // LOG(INFO) << "Received response from " << cntl.remote_side()
+            //     << " to " << cntl.local_side()
+            //     << " latency=" << cntl.latency_us() << "us";
         } else {
             LOG(WARNING) << cntl.ErrorText();
         }
