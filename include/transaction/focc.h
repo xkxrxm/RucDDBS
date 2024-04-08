@@ -2,6 +2,7 @@
 #include <semaphore.h>
 
 #include "txn.h"
+#include "KVStore_occ.h"
 
 #define STACK_PUSH(stack, entry) \
     {                            \
@@ -39,4 +40,5 @@ private:
     sem_t _semaphore;
 
     sem_t _active_semaphore;
+    KVStorage *storage;
 };

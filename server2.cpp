@@ -18,12 +18,14 @@ DEFINE_string(store_path,
 int main(int argc, char **argv){
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-    auto lock_manager_ = std::make_unique<Lock_manager>(true);
+    // auto lock_manager_ = std::make_unique<Lock_manager>(true);
     auto log_storage_ = std::make_unique<LogStorage>("test_db");
     auto log_manager_ = std::make_unique<LogManager>(log_storage_.get());
 
     auto kv_ = std::make_unique<KVStore>(LOG_DIR,log_manager_.get());
-    auto transaction_manager_sql = std::make_unique<TransactionManager>(lock_manager_.get(),kv_.get(),log_manager_.get(),ConcurrencyMode::TWO_PHASE_LOCKING);
+    auto focc_ = std::make_unique<Focc>();
+    focc_->init();
+    auto transaction_manager_sql = std::make_unique<TransactionManager>(kv_.get(), log_manager_.get(), focc_.get());
 
     brpc::Server server;
     session::Session_Service_Impl session_service_impl(transaction_manager_sql.get());

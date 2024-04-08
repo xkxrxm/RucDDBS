@@ -98,3 +98,6 @@ server端：根据事务id创建新事务或者继承原有事务
 
 id = id + client个数
 每个client初始id = client 序号
+
+1. 和sql层没法合起来，执行计划的逻辑不清楚
+2. 性能测试的设计

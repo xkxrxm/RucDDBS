@@ -28,6 +28,7 @@ struct Column_info{
 std::string vec_to_string(std::vector<std::string> vec);
 
 bool create_par_table(std::string tab_name, std::shared_ptr<Column_info>& cols_info, std::vector<int>& par_vals);
+bool drop_par_table(std::string tab_name);
 
 bool GetColInfo(std::string tab_name, Column_info &ret);
 

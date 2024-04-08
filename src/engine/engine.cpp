@@ -199,6 +199,12 @@ bool create_table(shared_ptr<ast::CreateTable> create_table){
     return res;
 }
 
+bool drop_table(shared_ptr<ast::DropTable> drop_table){
+    auto tab_name = drop_table->tab_name;
+    auto res = drop_par_table(tab_name);
+    return res;
+}
+
 
 void build_insert_plan(shared_ptr<ast::InsertStmt> insert_tree, std::shared_ptr<op_executor> exec_plan, Context* context){
     // 构造insert算子
@@ -595,7 +601,15 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
                     ok_txt = "error";
                     cout << "fail create table" << endl;
                 }
-            } else if (auto x = std::dynamic_pointer_cast<ast::InsertStmt>(root)) {
+            } else if (auto x = std::dynamic_pointer_cast<ast::DropTable>(ast::parse_tree)){
+                if(drop_table(x)){
+                    ok_txt = "OK";
+                    cout << "drop table " << x->tab_name << endl;
+                } else{
+                    ok_txt = "error";
+                    cout << "fail drop table" << endl;
+                }
+            }else if (auto x = std::dynamic_pointer_cast<ast::InsertStmt>(root)) {
             // insert;
                 // 根据table 信息 转成record类型
                 // 找到对应的表ip进行插入

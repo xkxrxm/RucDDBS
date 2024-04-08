@@ -153,8 +153,8 @@ public:
         std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
-        transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
+        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
+        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, rec->row[0]->str);
         // 默认第一列为主键
         string key = "/store_data/" + tab_name + "/" 
@@ -180,8 +180,8 @@ public:
         std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
-        transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
+        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
+        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
         //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
         // }
@@ -212,8 +212,8 @@ public:
         std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
         auto o_id = table_name_id_map[tab_name];
         l.unlock();
-        transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
+        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
+        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
         // for(auto x: res){
         //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
         // }
@@ -307,8 +307,8 @@ public:
         auto o_id = table_name_id_map[tabs];
         l.unlock();
         cout << "unlock" << endl;
-        transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_SHARED, o_id);
-        transaction_manager_->getLockManager()->LockPartition(txn, LockMode::SHARED, o_id, par);
+        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_SHARED, o_id);
+        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::SHARED, o_id, par);
         cout << "txn " << endl;
         vector<shared_ptr<record>> res;
         auto ret = kv_store::get_par(tabs, par, res);

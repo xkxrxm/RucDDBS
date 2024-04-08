@@ -1,0 +1,54 @@
+syntax="proto3";
+package focc_manager;
+
+option cc_generic_services = true;
+
+message CommitRequest {
+  uint64 txn_id = 1;
+  repeated string keys = 2;
+};
+message CommitResponse {
+  bool ok = 1;
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  bool locked = 1;
+  string value = 2;
+  // True if the requested key doesn't exist; another error will not be signalled.
+  bool not_found = 3;
+}
+
+enum Op {
+  Put = 0;
+  Del = 1;
+  Rollback = 2;
+  Lock = 3;
+}
+
+message KvPair {
+  Op op = 1;
+  string key = 2;
+  string value = 3;
+}
+
+message PrewriteRequest {
+  repeated KvPair kv_pairs = 1;
+  // Key of the primary lock.
+  // bytes primary_lock = 3;
+  // uint64 start_version = 4;
+  // uint64 lock_ttl = 5;
+}
+
+message PrewriteResponse {
+  bool error = 1;
+}
+
+service FoccManager {
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Prewrite(PrewriteRequest) returns (PrewriteResponse);
+  rpc Commit(CommitRequest) returns (CommitResponse);
+}

@@ -55,6 +55,18 @@ bool create_par_table(std::string tab_name, std::shared_ptr<Column_info> &cols_i
     return p1&p2&p3;
 }
 
+bool drop_par_table(std::string tab_name){
+    std::string ip_address_key = "/meta_data/ip_address/" + tab_name;
+    std::string par_info_key = "/meta_data/par_info/" + tab_name;
+    std::string col_info_key = "/meta_data/col_info/" + tab_name;
+
+    auto p1 = etcd_del(ip_address_key);
+    auto p2 = etcd_del(par_info_key);
+    auto p3 = etcd_del(col_info_key);
+
+    return p1&p2&p3;
+}
+
 bool GetColInfo(std::string tab_name, Column_info &ret){
     std::string col_info_key = "/meta_data/col_info/" + tab_name;
     std::string res = etcd_get(col_info_key);
