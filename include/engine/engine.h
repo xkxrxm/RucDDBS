@@ -289,18 +289,21 @@ public:
     op_point_select(Context *context): Operators(context){};
     string tab_name;
     int par;
+    string key;
     
     vector<shared_ptr<record>> exec_op(){
         prt_op();
         vector<shared_ptr<record>> res;
-        shared_ptr<record> iter;
+        shared_ptr<record> iter(new record);
 
-        // "0" :default first column is primary key
-        string key = "/store_data/" + tab_name + "/" 
-            + to_string(par) + "/" + "0";
-        auto ret = txn->get(key,iter);
-        if(!ret)
-            LOG(ERROR) << "Failed to get table " << tab_name << " " << par;
+        // "/0/" :default first column is primary key
+        string key_ = "/store_data/" + tab_name + "/" 
+            + to_string(par) + "/" + key;
+        auto ret = txn->get(key_,iter);
+        if(!ret){
+            LOG(ERROR) << "Failed to get key " << key_;
+            return res;
+        }
         Column_info cols;
         GetColInfo(tab_name, cols);
         for(auto i = 0 ; i < int(iter->row.size()) ; i++){

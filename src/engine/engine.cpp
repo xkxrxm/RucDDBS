@@ -86,8 +86,9 @@ int send_plan(string target_address,
             auto point_select_plan = new session::PointSelectPlan;
 
             point_select_plan->set_db_name(DB_NAME);
-            point_select_plan->set_tab_name(table_scan->tabs);
-            point_select_plan->set_par_id(table_scan->par);
+            point_select_plan->set_tab_name(point_select->tab_name);
+            point_select_plan->set_par_id(point_select->par);
+            point_select_plan->set_key(point_select->key);
 
             cur_plan->set_allocated_point_select_plan(point_select_plan);
             cur_plan = point_select_plan->add_child();
@@ -402,7 +403,19 @@ void build_update_plan(shared_ptr<ast::UpdateStmt> update_tree,
         distribution_plan->target_address.push_back(iter.second);
     }
 }
-
+bool is_point_select(std::string col_name,
+                     std::vector<std::shared_ptr<ast::BinaryExpr>> conds)
+{
+    if (conds.size() == 1)
+    {
+        if (conds[0]->lhs->col_name == col_name &&
+            conds[0]->op == ast::SV_OP_EQ)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 void build_select_plan(std::shared_ptr<ast::SelectStmt> select_tree,
                        std::shared_ptr<op_executor> exec_plan,
                        Context *context)
@@ -455,13 +468,40 @@ void build_select_plan(std::shared_ptr<ast::SelectStmt> select_tree,
             shared_ptr<op_distribution> dist_plan(new op_distribution(context));
             for (auto iter : par_ips)
             {
-                context->txn_->add_distributed_node_set(iter.second);
-                std::shared_ptr<op_tablescan> remote_scan_plan(
-                    new op_tablescan(context));
-                remote_scan_plan->tabs = tab;
-                remote_scan_plan->par = iter.first;
-                dist_plan->nodes_plan.push_back(remote_scan_plan);
-                dist_plan->target_address.push_back(iter.second);
+                if (is_point_select(col_info.column_name[0],
+                                    select_tree->conds))
+                {
+                    LOG(DEBUG) << "point_select";
+                    context->txn_->add_distributed_node_set(iter.second);
+                    std::shared_ptr<op_point_select> remote_scan_plan(
+                        new op_point_select(context));
+                    remote_scan_plan->tab_name = tab;
+                    remote_scan_plan->par = iter.first;
+                    if (auto x = std::dynamic_pointer_cast<ast::IntLit>(
+                            select_tree->conds[0]->rhs))
+                    {
+                        remote_scan_plan->key = x->val;
+                        dist_plan->nodes_plan.push_back(remote_scan_plan);
+                        dist_plan->target_address.push_back(iter.second);
+                    }
+                    else
+                    {
+                        LOG(ERROR) << "TODO now first column noly support int "
+                                      "and be primary key";
+                        assert(false);
+                    }
+                }
+                else
+                {
+                    LOG(DEBUG) << "table_scan";
+                    context->txn_->add_distributed_node_set(iter.second);
+                    std::shared_ptr<op_tablescan> remote_scan_plan(
+                        new op_tablescan(context));
+                    remote_scan_plan->tabs = tab;
+                    remote_scan_plan->par = iter.first;
+                    dist_plan->nodes_plan.push_back(remote_scan_plan);
+                    dist_plan->target_address.push_back(iter.second);
+                }
             }
             join_plan->tables_get.push_back(dist_plan);
         }
@@ -485,13 +525,42 @@ void build_select_plan(std::shared_ptr<ast::SelectStmt> select_tree,
         shared_ptr<op_distribution> dist_plan(new op_distribution(context));
         for (auto iter : par_ips)
         {
-            context->txn_->add_distributed_node_set(iter.second);
-            std::shared_ptr<op_tablescan> remote_scan_plan(
-                new op_tablescan(context));
-            remote_scan_plan->tabs = select_tree->tabs[0];
-            remote_scan_plan->par = iter.first;
-            dist_plan->nodes_plan.push_back(remote_scan_plan);
-            dist_plan->target_address.push_back(iter.second);
+            if (is_point_select(col_info.column_name[0], select_tree->conds))
+            {
+                LOG(DEBUG) << "point_select";
+                context->txn_->add_distributed_node_set(iter.second);
+                std::shared_ptr<op_point_select> remote_scan_plan(
+                    new op_point_select(context));
+                remote_scan_plan->tab_name = select_tree->tabs[0];
+                remote_scan_plan->par = iter.first;
+                if (auto x = std::dynamic_pointer_cast<ast::IntLit>(
+                        select_tree->conds[0]->rhs))
+                {
+                    remote_scan_plan->key = to_string(x->val);
+                    LOG(DEBUG) << "key: " << x->val;
+                    dist_plan->nodes_plan.push_back(remote_scan_plan);
+                    dist_plan->target_address.push_back(iter.second);
+                }
+                else
+                {
+                    LOG(ERROR) << "TODO now first column noly support int "
+                                  "and be primary key";
+                    assert(false);
+                }
+                dist_plan->nodes_plan.push_back(remote_scan_plan);
+                dist_plan->target_address.push_back(iter.second);
+            }
+            else
+            {
+                LOG(DEBUG) << "table_scan";
+                context->txn_->add_distributed_node_set(iter.second);
+                std::shared_ptr<op_tablescan> remote_scan_plan(
+                    new op_tablescan(context));
+                remote_scan_plan->tabs = select_tree->tabs[0];
+                remote_scan_plan->par = iter.first;
+                dist_plan->nodes_plan.push_back(remote_scan_plan);
+                dist_plan->target_address.push_back(iter.second);
+            }
         }
         cur_node->next_node = dist_plan;
         cur_node = cur_node;

@@ -89,7 +89,8 @@ message PointSelectPlan {
     string db_name = 1;
     string tab_name = 2;
     sint32 par_id = 3;
-    repeated ChildPlan child = 4;
+    string key = 4;
+    repeated ChildPlan child = 5;
 }
 
 //获取key值

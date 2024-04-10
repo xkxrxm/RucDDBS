@@ -30,6 +30,7 @@ void ConvertIntoPlan(const ChildPlan* child_plan, std::shared_ptr<Operators> ope
                 auto ptr = std::make_shared<op_point_select>(context);
                 ptr->tab_name = child_plan->point_select_plan().tab_name();
                 ptr->par = child_plan->point_select_plan().par_id();
+                ptr->key = child_plan->point_select_plan().key();
     
                 cur_op->next_node = ptr;
                 cur_op = cur_op->next_node;
