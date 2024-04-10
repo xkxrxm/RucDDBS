@@ -538,8 +538,6 @@ void build_select_plan(std::shared_ptr<ast::SelectStmt> select_tree,
                 {
                     remote_scan_plan->key = to_string(x->val);
                     LOG(DEBUG) << "key: " << x->val;
-                    dist_plan->nodes_plan.push_back(remote_scan_plan);
-                    dist_plan->target_address.push_back(iter.second);
                 }
                 else
                 {

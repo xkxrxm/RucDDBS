@@ -95,6 +95,7 @@ public:
     vector<shared_ptr<record>> exec_op(){
         prt_op();
         auto ret = next_node->exec_op();
+        LOG(DEBUG) << "ret size: " << ret.size();
         vector<shared_ptr<record>> res;
         if(int(ret.size()) == 0){
             return res;
@@ -217,9 +218,9 @@ public:
         vector<shared_ptr<record>> res;
 
         for(int i = 0 ; i < int(nodes_plan.size()); i++){
-            cout << "distribution " << target_address[i] << endl;
             vector<shared_ptr<record>> ret;
             send_plan(target_address[i],nodes_plan[i], ret, txn->get_txn_id());
+            LOG(DEBUG)<< "from " << target_address[i] << " size: " << ret.size(); 
             res.insert(res.end(), ret.begin(), ret.end());
         }
         return res;
@@ -311,6 +312,7 @@ public:
                 iter->row[i]->tab_name = tab_name;
             }
         res.push_back(iter);
+        assert(res.size()==1);
         return res;
     }
 };
