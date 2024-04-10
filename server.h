@@ -25,6 +25,18 @@ void ConvertIntoPlan(const ChildPlan* child_plan, std::shared_ptr<Operators> ope
                 child_plan = &(child_plan->seq_scan_plan().child()[0]);
                 break;
             }
+            case ChildPlan::ChildPlanCase::kPointSelectPlan :{
+                cout << "kPointSelectPlan " << endl;
+                auto ptr = std::make_shared<op_point_select>(context);
+                ptr->tab_name = child_plan->point_select_plan().tab_name();
+                ptr->par = child_plan->point_select_plan().par_id();
+    
+                cur_op->next_node = ptr;
+                cur_op = cur_op->next_node;
+                
+                child_plan = &(child_plan->point_select_plan().child()[0]);
+                break;
+            }
             case ChildPlan::ChildPlanCase::kFilterPlan: {
                 cout << "kFilterPlan " << endl;
                 auto ptr = std::make_shared<op_selection>(context);
@@ -164,7 +176,6 @@ public:
         
         Transaction* txn = transaction_manager_->getTransaction(txn_id);
         if(txn == nullptr) {
-            std::unique_lock<std::shared_mutex> l(transaction_manager_->txn_map_mutex);
             transaction_manager_->Begin(txn, txn_id);
         }
         Context *context_ = new Context(txn, transaction_manager_);

@@ -67,6 +67,7 @@ message ChildPlan {
         ValuePlan value_plan = 8;
         TableGetPlan table_get_pan = 9;
         DistributedPlan distributed_plan = 10;
+        PointSelectPlan point_select_plan = 11;
     }
 }
 
@@ -78,6 +79,13 @@ message ValuePlan {
 
 //扫描分区计划
 message SeqScanPlan {
+    string db_name = 1;
+    string tab_name = 2;
+    sint32 par_id = 3;
+    repeated ChildPlan child = 4;
+}
+
+message PointSelectPlan {
     string db_name = 1;
     string tab_name = 2;
     sint32 par_id = 3;

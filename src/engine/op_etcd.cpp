@@ -70,9 +70,6 @@ std::map<std::string, std::string> etcd_par(std::string key){
         res[k] = v;
     }
 
-    for(auto i:res){
-        std::cout << i.first << " " << i.second << std::endl; 
-    }
     return res;
 }
 

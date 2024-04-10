@@ -7,13 +7,12 @@ std::unordered_map<txn_id_t, Transaction *> TransactionManager::txn_map = {};
 std::shared_mutex TransactionManager::txn_map_mutex = {};
 
 Transaction* TransactionManager::Begin(Transaction*& txn, txn_id_t txn_id, IsolationLevel isolation_level){
-  global_txn_latch_.lock_shared();
   if (txn == nullptr)
   {
       txn = new Transaction(txn_id, isolation_level);
   }
-  LOG(WARNING)<< "Need to consider the lock here.";
-//   std::unique_lock<std::shared_mutex> l(txn_map_mutex);
+  LOG(DEBUG) << "Begin txn_id: " << txn_id;
+  std::unique_lock<std::shared_mutex> l(txn_map_mutex);
   assert(txn_map.find(txn_id) == txn_map.end());
   txn_map[txn_id] = txn;
   return txn;
@@ -53,23 +52,28 @@ uint64_t TransactionManager::getTimestampFromServer(){
 
 bool TransactionManager::Abort(Transaction *txn)
 {
-    assert(false);
+    focc_->finish(txn);
+    std::unique_lock<std::shared_mutex> l(txn_map_mutex);
+    txn_map.erase(txn->get_txn_id());
+    LOG(DEBUG)<< "Abort txn_id: " << txn->get_txn_id();
+    return true;
 }
 
 bool TransactionManager::AbortSingle(Transaction *txn, bool use_raft)
 {
     focc_->finish(txn);
-    // Remove txn from txn_map
     std::unique_lock<std::shared_mutex> l(txn_map_mutex);
     txn_map.erase(txn->get_txn_id());
-    // Release the global transaction latch.
-    global_txn_latch_.unlock_shared();
+    LOG(DEBUG)<< "Abort txn_id: " << txn->get_txn_id();
     return true;
 }
 
 bool TransactionManager::Commit(Transaction *txn)
 {
-    LOG(WARNING)<<"Commit is not implemented yet.";
+    focc_->finish(txn);
+    std::unique_lock<std::shared_mutex> l(txn_map_mutex);
+    txn_map.erase(txn->get_txn_id());
+    LOG(DEBUG)<< "Commit txn_id: " << txn->get_txn_id();
     return true;
 }
 bool TransactionManager::CommitSingle(Transaction *txn,
@@ -80,20 +84,11 @@ bool TransactionManager::CommitSingle(Transaction *txn,
     focc_->finish(txn);
     std::unique_lock<std::shared_mutex> l(txn_map_mutex);
     txn_map.erase(txn->get_txn_id());
-    // Release the global transaction latch.
-    global_txn_latch_.unlock_shared();
+    LOG(DEBUG)<< "Commit txn_id: " << txn->get_txn_id();
     return check;
 }
 
 bool TransactionManager::PrepareCommit(Transaction *txn)
 {
     return focc_->validate(txn);
-}
-
-bool TransactionManager::ReadRow(Transaction *txn, Row_occ *row)
-{
-    bool rc = row->access(txn, RD);
-    if (rc == true)
-        focc_->active_storage(txn);
-    return rc;
 }

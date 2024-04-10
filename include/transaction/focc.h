@@ -11,7 +11,7 @@
     }
 
 class Transaction;
-class f_set_ent;
+class rw_set;
 class Focc
 {
 public:
@@ -27,13 +27,13 @@ private:
     bool central_validate(Transaction *&txn);
 
     void central_finish(Transaction *&txn);
-    bool test_valid(f_set_ent *set1, f_set_ent *set2);
-    // bool get_rw_set(Transaction *&txn, f_set_ent *&rset, f_set_ent *&wset);
+    bool test_valid(rw_set *set1, rw_set *set2);
+    // bool get_rw_set(Transaction *&txn, rw_set *&rset, rw_set *&wset);
 
     // // "history" stores write set of transactions with txn_id >= smallest
     // running txn_id
 
-    f_set_ent *active;
+    rw_set *active;
     uint64_t active_len;
     volatile uint64_t tnc;  // transaction number counter
     pthread_mutex_t latch;

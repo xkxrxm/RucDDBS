@@ -8,7 +8,6 @@
 #include "include/parser/ast.h"
 #include "parser.h"
 #include "record.h"
-#include "kv_store.h"
 #include "meta_data.h"
 #include <iomanip>
 #include "session.pb.h"
@@ -16,7 +15,6 @@
 #include <butil/logging.h>
 # define DB_NAME "RucDDBS"
 using namespace std;
-#define debug_test 1
 
 class Context {
 public:
@@ -38,8 +36,7 @@ public:
     Transaction* txn = nullptr;
     virtual vector<shared_ptr<record>> exec_op() = 0;
     void prt_op(){
-        if(debug_test)
-            cout << typeid(*this).name() << endl;
+        LOG(DEBUG) << typeid(*this).name() << endl;
     }
 };
 
@@ -98,7 +95,6 @@ public:
     vector<shared_ptr<record>> exec_op(){
         prt_op();
         auto ret = next_node->exec_op();
-        LOG(INFO) << "select get" << endl;
         vector<shared_ptr<record>> res;
         if(int(ret.size()) == 0){
             return res;
@@ -151,18 +147,10 @@ public:
     
     vector<shared_ptr<record>> exec_op(){
         prt_op();
-        //Lock
-        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        // auto o_id = table_name_id_map[tab_name];
-        // l.unlock();
-        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
-        // transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, rec->row[0]->str);
-        // 默认第一列为主键
         string key = "/store_data/" + tab_name + "/" 
             + to_string(par) + "/" + to_string(rec->row[0]->str);
         // value
-        kv_store::put(key, rec);
+        txn->put(key, rec);
         
         vector<shared_ptr<record>> insert_rec;
         insert_rec.push_back(rec);
@@ -178,20 +166,9 @@ public:
     vector<shared_ptr<record>> exec_op(){
         auto res = next_node->exec_op();
 
-        //Lock
-        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        // auto o_id = table_name_id_map[tab_name];
-        // l.unlock();
-        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
-        // for(auto x: res){
-        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
-        // }
-        
-        // 构造key 进行删除
         for(auto iter: res){
             auto key = "/store_data/" + tab_name + "/" + to_string(par) + "/" + to_string(iter->row[0]->str);
-            kv_store::del(key);
+            txn->del(key);
         }
         return res;
     }
@@ -210,17 +187,6 @@ public:
         prt_op();
         auto res = next_node->exec_op();
 
-        //Lock
-        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        // auto o_id = table_name_id_map[tab_name];
-        // l.unlock();
-        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_EXCLUSIVE, o_id);
-        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::EXCLUSIVE, o_id, par);
-        // for(auto x: res){
-        //     transaction_manager_->getLockManager()->LockRow(txn, LockMode::EXCLUSIVE, o_id, par, x->row[0]->str);
-        // }
-        
-        // 构造key 进行更新
         for(auto iter: res){
             auto key = "/store_data/" + tab_name + "/" + to_string(par) + "/" + to_string(iter->row[0]->str);
             auto row = iter->row;
@@ -233,7 +199,7 @@ public:
                 cout << val->str << endl;
                 iter->row[col]->str = val->str;
             }
-            kv_store::put(key, iter);
+            txn->put(key, iter);
         }
         return res;
     }
@@ -302,20 +268,10 @@ public:
     
     vector<shared_ptr<record>> exec_op(){
         prt_op();
-
-        //Lock
-        // cout << "lock " << endl;
-        // std::shared_lock<std::shared_mutex> l(table_name_id_map_mutex);
-        // auto o_id = table_name_id_map[tabs];
-        // l.unlock();
-        // cout << "unlock" << endl;
-        // transaction_manager_->getLockManager()->LockTable(txn, LockMode::INTENTION_SHARED, o_id);
-        // transaction_manager_->getLockManager()->LockPartition(txn, LockMode::SHARED, o_id, par);
-        cout << "txn " << endl;
         vector<shared_ptr<record>> res;
-        auto ret = kv_store::get_par(tabs, par, res);
+        auto ret = txn->get_par(tabs, par, res);
         if(!ret)
-            cout << "error" << endl;
+            LOG(ERROR) << "Failed to get table " << tabs << " " << par;
         Column_info cols;
         GetColInfo(tabs, cols);
         for(auto iter: res){
@@ -324,7 +280,34 @@ public:
                 iter->row[i]->tab_name = tabs;
             }
         }
-        cout << "get table" << endl;
+        return res;
+    }
+};
+
+class op_point_select: public Operators{
+public:
+    op_point_select(Context *context): Operators(context){};
+    string tab_name;
+    int par;
+    
+    vector<shared_ptr<record>> exec_op(){
+        prt_op();
+        vector<shared_ptr<record>> res;
+        shared_ptr<record> iter;
+
+        // "0" :default first column is primary key
+        string key = "/store_data/" + tab_name + "/" 
+            + to_string(par) + "/" + "0";
+        auto ret = txn->get(key,iter);
+        if(!ret)
+            LOG(ERROR) << "Failed to get table " << tab_name << " " << par;
+        Column_info cols;
+        GetColInfo(tab_name, cols);
+        for(auto i = 0 ; i < int(iter->row.size()) ; i++){
+                iter->row[i]->col_name = cols.column_name[i];
+                iter->row[i]->tab_name = tab_name;
+            }
+        res.push_back(iter);
         return res;
     }
 };

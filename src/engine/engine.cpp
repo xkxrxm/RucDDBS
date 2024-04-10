@@ -47,11 +47,11 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
     // 将我们构造好的执行计划，转成rpc通信用的message类
     // 根据我们目前的plan构造
     // 只有insert, delete, update, select，table_scan需要实现
-    cout << "send_plan: " << endl;
+    LOG(DEBUG) << "send_plan: " ;
     auto cur_plan = child_plan;
     while(node_plan != nullptr){
         if (auto table_scan = dynamic_pointer_cast<op_tablescan>(node_plan)) {
-            cout << "table_scan " << endl;
+            LOG(DEBUG) << "table_scan " ;
             auto seq_scan_plan = new session::SeqScanPlan;
 
             seq_scan_plan->set_db_name(DB_NAME);
@@ -60,10 +60,21 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
 
             cur_plan->set_allocated_seq_scan_plan(seq_scan_plan);
             cur_plan = seq_scan_plan->add_child();
-        }
+        }else if (auto point_select = dynamic_pointer_cast<op_point_select>(node_plan))
+        {
+            LOG(DEBUG) << "point_select " ;
+            auto point_select_plan = new session::PointSelectPlan;
+
+            point_select_plan->set_db_name(DB_NAME);
+            point_select_plan->set_tab_name(table_scan->tabs);
+            point_select_plan->set_par_id(table_scan->par);
+
+            cur_plan->set_allocated_point_select_plan(point_select_plan);
+            cur_plan = point_select_plan->add_child();
+        }  
         else if (auto insert_message = dynamic_pointer_cast<op_insert>(node_plan)) {
             // 实现insert到message构造
-            cout << "insert_plan " << endl;
+            LOG(DEBUG) << "insert_plan " ;
             auto insert_plan = new session::InsertPlan;
             insert_plan->set_db_name(DB_NAME);
             insert_plan->set_tab_name(insert_message->tab_name);
@@ -78,7 +89,7 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
             cur_plan = insert_plan->add_child();
         }
         else if(auto update_message = dynamic_pointer_cast<op_update>(node_plan)){
-            cout << "update_plan " << endl;
+            LOG(DEBUG) << "update_plan " ;
             // 实现update到message构造
             auto update_plan = new session::UpdatePlan;
             update_plan->set_db_name(DB_NAME);
@@ -98,7 +109,7 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
         }
         else if(auto delete_message = dynamic_pointer_cast<op_delete>(node_plan)){
             // 实现delete到message构造
-            cout << "delete_plan " << endl;
+            LOG(DEBUG) << "delete_plan " ;
             auto delete_plan = new session::DeletePlan;
 
             delete_plan->set_db_name(DB_NAME);
@@ -110,7 +121,7 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
         }
         else if(auto select_message = dynamic_pointer_cast<op_selection>(node_plan)){
             // 实现select到message构造
-            cout << "select_plan " << endl;
+            LOG(DEBUG) << "select_plan " ;
             auto select_plan = new session::FilterPlan;
             auto cond_msg = new session::BinaryMessage;
 
@@ -149,7 +160,7 @@ int send_plan(string target_address, shared_ptr<Operators> node_plan, vector<sha
     options.timeout_ms = 0xfffffff;
     options.max_retry = 3;
 
-    cout << address << endl;
+    LOG(DEBUG) << address ;
     if (channel.Init(address.c_str(), &options) != 0){
         LOG(ERROR) << "Fail to initialize channel";
     }
@@ -186,7 +197,7 @@ bool create_table(shared_ptr<ast::CreateTable> create_table){
             cols_info->column_name.push_back(parser_col_def->col_name);
             cols_info->column_type.push_back(ColType(int(parser_col_def->type_len->type)));
         } else {
-            cout << "Unexpected field type" << endl;
+            LOG(DEBUG) << "Unexpected field type" ;
         }
     }
     par_vals.push_back(par_min);
@@ -292,9 +303,9 @@ void build_update_plan(shared_ptr<ast::UpdateStmt> update_tree, std::shared_ptr<
         update_plan->par = iter.first;
         update_plan->tab_name = tab_name;
         for(auto set_col: update_tree->set_clauses){
-            // cout << set_col->col_name << endl;
+            // LOG(DEBUG) << set_col->col_name ;
             for(int i = 0; i < int(col_info.column_name.size()); i++){ 
-                // cout << col_info.column_name[i] << endl;
+                // LOG(DEBUG) << col_info.column_name[i] ;
                 if(set_col->col_name == col_info.column_name[i]){
                     update_plan->set_col_index.push_back(i);
                     update_plan->set_val.push_back(interp_value(set_col->val));
@@ -400,17 +411,17 @@ void build_select_plan(std::shared_ptr<ast::SelectStmt> select_tree, std::shared
 void prt_plan(shared_ptr<Operators> exec_plan){
     auto tmp = exec_plan;
     while(tmp != nullptr){
-        cout << typeid(*tmp).name() << endl;
+        LOG(DEBUG) << typeid(*tmp).name() ;
         tmp = tmp->next_node;
     }
-    cout << "over_plan" << endl;
+    LOG(DEBUG) << "over_plan" ;
 }
 
 void prt_plan(shared_ptr<Operators> exec_plan, vector<vector<string>> &res_txt, string offset, string node){
     auto tmp = exec_plan;
     vector<string> row;
     string op = offset + typeid(*tmp).name();
-    cout << op << endl;
+    LOG(DEBUG) << op ;
     row.push_back(op);
     row.push_back(node);
     res_txt.push_back(row);
@@ -583,7 +594,7 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
                     exec_plan->txn = exec_plan->transaction_manager_->getTransaction(txn_id);
                 }
                 context->txn_ = exec_plan->txn;
-                cout << "txn = " << txn_id << endl;
+                LOG(DEBUG) << "txn = " << txn_id ;
                 build_select_plan(x, exec_plan, context);
                 res = exec_plan->exec_op();
                 // 结束事务
@@ -596,18 +607,18 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
             } else if(auto x = std::dynamic_pointer_cast<ast::CreateTable>(ast::parse_tree)){
                 if(create_table(x)){
                     ok_txt = "OK";
-                    cout << "create table " << x->tab_name << endl;
+                    LOG(DEBUG) << "create table " << x->tab_name ;
                 } else{
                     ok_txt = "error";
-                    cout << "fail create table" << endl;
+                    LOG(DEBUG) << "fail create table" ;
                 }
             } else if (auto x = std::dynamic_pointer_cast<ast::DropTable>(ast::parse_tree)){
                 if(drop_table(x)){
                     ok_txt = "OK";
-                    cout << "drop table " << x->tab_name << endl;
+                    LOG(DEBUG) << "drop table " << x->tab_name ;
                 } else{
                     ok_txt = "error";
-                    cout << "fail drop table" << endl;
+                    LOG(DEBUG) << "fail drop table" ;
                 }
             }else if (auto x = std::dynamic_pointer_cast<ast::InsertStmt>(root)) {
             // insert;
@@ -666,7 +677,7 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
                 shared_ptr<op_executor> exec_plan(new op_executor(context));
                 exec_plan->transaction_manager_->Begin(exec_plan->txn);
                 txn_id = exec_plan->txn->get_txn_id();
-                cout << "begin txn = " << txn_id << endl; 
+                LOG(DEBUG) << "begin txn = " << txn_id ; 
                 ok_txt = "OK";
             } else if (auto x = std::dynamic_pointer_cast<ast::TxnCommit>(root)) {
                 // commit;
@@ -676,7 +687,7 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
                     exec_plan->transaction_manager_->Commit(exec_plan->txn);
                     txn_id = 0;
                 }
-                cout << "commit txn = " << txn_id << endl;
+                LOG(DEBUG) << "commit txn = " << txn_id ;
                 ok_txt = "OK";
             } else if (auto x = std::dynamic_pointer_cast<ast::TxnAbort>(root)) {
                 if(txn_id){
@@ -685,7 +696,7 @@ string Sql_execute_client(string str, txn_id_t &txn_id, Context* context){
                     exec_plan->transaction_manager_->Abort(exec_plan->txn);
                     txn_id = 0;
                 }
-                cout << "abort txn = " << txn_id << endl;
+                LOG(DEBUG) << "abort txn = " << txn_id ;
                 ok_txt = "OK";
             }
         }

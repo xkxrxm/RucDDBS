@@ -1,5 +1,5 @@
 #include "focc.h"
-
+#include <butil/logging.h>
 #include "transaction.h"
 
 void Focc::init()
@@ -23,14 +23,14 @@ void Focc::finish(Transaction *&txn)
 
 void Focc::active_storage(Transaction *&txn)
 {
-    f_set_ent *act = active;
-    f_set_ent *rset = txn->get_read_set();
-    if (rset->set_size == 0)
+    rw_set *act = active;
+    rw_set *rset = txn->get_read_set();
+    if (rset->keys.size() == 0)
     {
         return;
     }
     sem_wait(&_semaphore);
-    while (act != NULL && act->txn != txn)
+    while (act != NULL && act->txn_id != txn->get_txn_id())
     {
         act = act->next;
     }
@@ -49,40 +49,30 @@ void Focc::active_storage(Transaction *&txn)
 bool Focc::central_validate(Transaction *&txn)
 {
     bool rc;
-    // uint64_t starttime = TransactionManager::getTimestampFromServer();
-    // uint64_t total_starttime = starttime;
-    // uint64_t start_tn = txn->get_start_time();
 
     bool valid = true;
     // OptCC is centralized. No need to do per partition malloc.
-    f_set_ent *wset = txn->get_write_set();
-    bool readonly = (wset->set_size == 0);
-    f_set_ent *ent;
-    // uint64_t checked = 0;
-    // uint64_t active_checked = 0;
+    rw_set *wset = txn->get_write_set();
+    bool readonly = (wset->keys.size() == 0);
+    rw_set *ent;
 
     sem_wait(&_semaphore);
-    // starttime = TransactionManager::getTimestampFromServer();
 
     ent = active;
-    // In order to prevent cross between other read sets and the current
-    // transaction write set during verification, the write set is first locked.
     if (!readonly)
     {
-        for (uint64_t i = 0; i < wset->set_size; i++)
+        for (uint64_t i = 0; i < wset->keys.size(); i++)
         {
-            auto row = wset->rows[i];
-            if (!row->try_lock(txn->get_txn_id()))
+            if (txn->try_lock(wset->keys[i]) == false)
             {
                 rc = false;
             }
         }
         if (rc == false)
         {
-            for (uint64_t i = 0; i < wset->set_size; i++)
+            for (uint64_t i = 0; i < wset->keys.size(); i++)
             {
-                auto row = wset->rows[i];
-                row->release_lock(txn->get_txn_id());
+                txn->release_lock(wset->keys[i]);
             }
         }
     }
@@ -90,16 +80,15 @@ bool Focc::central_validate(Transaction *&txn)
     {
         for (ent = active; ent != NULL; ent = ent->next)
         {
-            f_set_ent *ract = ent;
+            rw_set *ract = ent;
             valid = test_valid(ract, wset);
             if (!valid)
             {
-                goto final;
+                break;
             }
         }
     }
-    // starttime = TransactionManager::getTimestampFromServer();
-final:
+
     if (valid)
     {
         rc = true;
@@ -108,14 +97,14 @@ final:
     {
         rc = false;
         // Optimization: If this is aborting, remove from active set now
-        f_set_ent *act = active;
-        f_set_ent *prev = NULL;
-        while (act != NULL && act->txn != txn)
+        rw_set *act = active;
+        rw_set *prev = NULL;
+        while (act != NULL && act->txn_id != txn->get_txn_id())
         {
             prev = act;
             act = act->next;
         }
-        if (act != NULL && act->txn == txn)
+        if (act != NULL && act->txn_id != txn->get_txn_id())
         {
             if (prev != NULL)
             {
@@ -134,14 +123,12 @@ final:
 
 void Focc::central_finish(Transaction *&txn)
 {
-    f_set_ent *wset = txn->get_write_set();
+    rw_set *wset = txn->get_write_set();
 
-    // only update active & tnc for non-readonly transactions
-    // uint64_t starttime = TransactionManager::getTimestampFromServer();
-    f_set_ent *act = active;
-    f_set_ent *prev = NULL;
+    rw_set *act = active;
+    rw_set *prev = NULL;
     sem_wait(&_semaphore);
-    while (act != NULL && act->txn != txn)
+    while (act != NULL && act->txn_id != txn->get_txn_id())
     {
         prev = act;
         act = act->next;
@@ -151,7 +138,7 @@ void Focc::central_finish(Transaction *&txn)
         sem_post(&_semaphore);
         return;
     }
-    assert(act->txn == txn);
+    assert(act->txn_id == txn->get_txn_id());
     if (prev != NULL)
     {
         prev->next = act->next;
@@ -162,24 +149,23 @@ void Focc::central_finish(Transaction *&txn)
     }
     active_len--;
 
-    for (uint64_t i = 0; i < wset->set_size; i++)
+    for (uint64_t i = 0; i < wset->keys.size(); i++)
     {
-        auto row = wset->rows[i];
-        row->release_lock(txn->get_txn_id());
+        txn->release_lock(wset->keys[i]);
     }
 
     sem_post(&_semaphore);
 }
 
-bool Focc::test_valid(f_set_ent *set1, f_set_ent *set2)
+bool Focc::test_valid(rw_set *set1, rw_set *set2)
 {
-    for (u_int32_t i = 0; i < set1->set_size; i++)
+    for (u_int32_t i = 0; i < set1->keys.size(); i++)
     {
-        for (u_int32_t j = 0; j < set2->set_size; j++)
+        for (u_int32_t j = 0; j < set2->keys.size(); j++)
         {
-            if (set1->txn == set2->txn)
+            if (set1->txn_id == set2->txn_id)
                 continue;
-            if (set1->rows[i] == set2->rows[j])
+            if (set1->keys[i] == set2->keys[j])
             {
                 return false;
             }
