@@ -38,30 +38,101 @@ public:
         focc_->init();
         transaction_manager_ = std::make_unique<TransactionManager>(
             kv_.get(), log_manager_.get(), focc_.get());
+        
+        shared_ptr<record> fake_record(new record);
+        fake_record->string_to_rec("2 1 0");
+        Transaction *txn = nullptr;
+        transaction_manager_->Begin(txn);
+        txn->put("x", fake_record);
+        txn->put("y", fake_record);
+        txn->put("z", fake_record);
+        txn->commit();
     }
 };
 
 TEST_F(TxnManagerTest, TxnManagerTest1)
 {
-    Transaction *txn = nullptr;
-    transaction_manager_->Begin(txn);
-    ASSERT_NE(txn, nullptr) << "txn_id: " << txn->get_txn_id() << std::endl;
-    Row_occ *row1 = new Row_occ(std::string("key1"));
-    transaction_manager_->ReadRow(txn, row1);
-    ASSERT_EQ(transaction_manager_->CommitSingle(txn), true);
+    Transaction *txn1 = nullptr;
+    transaction_manager_->Begin(txn1);
+    ASSERT_NE(txn1, nullptr) << "txn_id: " << txn1->get_txn_id() << std::endl;
+    Transaction *txn2 = nullptr;
+    transaction_manager_->Begin(txn2);
+    ASSERT_NE(txn2, nullptr) << "txn_id: " << txn2->get_txn_id() << std::endl;
+
+    shared_ptr<record> r(new record);
+    txn1->get("key1",r);
+    focc_->active_storage(txn1);
+
+    txn2->del("key1");
+    ASSERT_EQ(focc_->validate(txn2), false);
+
+
 }
 
 TEST_F(TxnManagerTest, TxnManagerTest2)
 {
+   /*
+    T1: R(z0)
+    T3: W(x1)
+    T3: W(z1)
+    T3: Commit --> fail
+    T2: W(x1)
+    T2: W(y1)
+    T2: Commit --> success
+    T1: R(y0)
+    T1: Commit --> success
+    */
     Transaction *txn1 = nullptr;
     Transaction *txn2 = nullptr;
+    Transaction *txn3 = nullptr;
     transaction_manager_->Begin(txn1);
     transaction_manager_->Begin(txn2);
-    Row_occ *row1 = new Row_occ(std::string("key1"));
+    transaction_manager_->Begin(txn3);
+    
+    shared_ptr<record> fake_record(new record);
+    fake_record->string_to_rec("2 1 1");
 
-    transaction_manager_->ReadRow(txn1, row1);
-    txn1->add_write_set(row1);
-    transaction_manager_->ReadRow(txn2, row1);
-    ASSERT_EQ(transaction_manager_->CommitSingle(txn1), false);
-    ASSERT_EQ(transaction_manager_->CommitSingle(txn2), true);
+    shared_ptr<record> r(new record);
+    txn1->get("z",r);
+    transaction_manager_->active_storage(txn1);
+    txn3->put("x", fake_record);
+    txn3->put("z", fake_record);
+    ASSERT_EQ(transaction_manager_->CommitSingle(txn3), false);
+    txn2->put("x", fake_record);
+    txn2->put("y", fake_record);
+    ASSERT_EQ(transaction_manager_->CommitSingle(txn2), false);
+    txn1->get("y",r);
+    ASSERT_EQ(transaction_manager_->CommitSingle(txn1), true);
 }
+
+// TEST_F(TxnManagerTest, TxnManagerTest3)
+// {
+//     /*
+//     T1: R(z0)
+//     T3: W(x1)
+//     T3: W(z1)
+//     T3: Commit
+//     T2: W(x1)
+//     T2: W(y1)
+//     T2: Commit
+//     */
+//     Transaction *txn1 = nullptr;
+//     Transaction *txn2 = nullptr;
+//     Transaction *txn3 = nullptr;
+//     transaction_manager_->Begin(txn1);
+//     transaction_manager_->Begin(txn2);
+//     transaction_manager_->Begin(txn3);
+    
+//     shared_ptr<record> fake_record(new record);
+//     fake_record->string_to_rec("2 1 1");
+
+//     shared_ptr<record> r(new record);
+//     txn1->get("z",r);
+//     txn3->put("x", fake_record);
+//     txn3->put("z", fake_record);
+//     ASSERT_EQ(transaction_manager_->CommitSingle(txn3), false);
+//     txn2->put("x", fake_record);
+//     txn2->put("y", fake_record);
+//     ASSERT_EQ(transaction_manager_->CommitSingle(txn2), false);
+//     ASSERT_EQ(transaction_manager_->CommitSingle(txn1), true);
+// }

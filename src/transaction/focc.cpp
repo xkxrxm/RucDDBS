@@ -74,6 +74,8 @@ bool Focc::central_validate(Transaction *&txn)
             {
                 txn->release_lock(wset->keys[i]);
             }
+            sem_post(&_semaphore);
+            return false;
         }
     }
     if (!readonly)

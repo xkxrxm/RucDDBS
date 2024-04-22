@@ -301,8 +301,8 @@ public:
         string key_ = "/store_data/" + tab_name + "/" 
             + to_string(par) + "/" + key;
         auto ret = txn->get(key_,iter);
+        transaction_manager_->active_storage(txn);
         if(!ret){
-            LOG(ERROR) << "Failed to get key " << key_;
             return res;
         }
         Column_info cols;

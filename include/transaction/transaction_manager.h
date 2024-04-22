@@ -71,6 +71,8 @@ public:
     }
 
     static uint64_t getTimestampFromServer();
+    void active_storage(Transaction *&txn){
+        focc_->active_storage(txn);}
 
     // 传入txn_id作为事务id
     Transaction *Begin(

@@ -14,6 +14,7 @@
 #include "engine/record.h"
 #include "row_occ.h"
 #include "txn.h"
+#include "storage/modify.h"
 
 using lsn_t = int32_t;
 using txn_id_t = uint64_t;
@@ -154,6 +155,7 @@ private:
     lsn_t prev_lsn_;     // 当前事务执行的最后一条操作对应的lsn
     rw_set *write_set_;  // 事务包含的所有写操作
     rw_set *read_set_;   // 事务包含的所有读操作
+    std::vector<Modify>* writes_; // 事务包含的所有写操作
 
     bool is_distributed;  // 是否是分布式事务
     std::shared_ptr<std::unordered_set<IP_Port, IP_PortHash>>
@@ -162,10 +164,11 @@ private:
 
 public:
     bool get(string key, shared_ptr<record> &val);
-    bool del(string key);
-    bool put(string key, shared_ptr<record> &val);
+    void del(string key);
+    void put(string key, shared_ptr<record> &val);
+    void commit();
     bool get_par(string tab_name, int par, vector<shared_ptr<record>> &res);
-    txn_id_t check_lock(string key);
+    bool check_lock(string key);
     bool try_lock(string key);
     bool release_lock(string key);
     inline void add_write_set(std::string key)
@@ -278,6 +281,7 @@ public:
         thread_id_ = std::this_thread::get_id();
         read_set_ = new rw_set(txn_id_);
         write_set_ = new rw_set(txn_id_);
+        writes_ = new std::vector<Modify>();
     };
 
     ~Transaction(){};

@@ -17,13 +17,13 @@ public:
         return kv_->get(cf + key).second;
     }
     void Write(std::vector<Modify*> batch){
-      for (auto &m : batch){
-        if (m->Value() == ""){
-          kv_->del(m->Cf() + m->Key());
-        } else {
-          kv_->put(m->Cf() + m->Key(), m->Value());
-        }
-      }
+      // for (auto &m : batch){
+      //   if (m->Value() == ""){
+      //     kv_->del(m->Cf() + m->Key());
+      //   } else {
+      //     kv_->put(m->Cf() + m->Key(), m->Value());
+      //   }
+      // }
     }
   private:
     KVStore_beta* kv_;
