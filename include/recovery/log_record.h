@@ -44,15 +44,6 @@ public:
         // calculate log record size
         size_ = HEADER_SIZE + sizeof(int32_t) + key_size_ + sizeof(int32_t) + value_size_;
     }
-
-    // // constructor for UPDATE type
-    // LogRecord(txn_id_t txn_id, lsn_t prev_lsn, LogRecordType log_record_type, 
-    //                 uint32_t key_size, const char* key, uint32_t value_size, const char* value, uint32_t old_value_size, const char* old_value)
-    //     : txn_id_(txn_id), prev_lsn_(prev_lsn), log_type_(log_record_type), key_size_(key_size), key_(key), 
-    //             value_size_(value_size), value_(value), old_value_size_(old_value_size), old_value_(old_value){
-    //     // calculate log record size
-    //     size_ = HEADER_SIZE + sizeof(int32_t) + key_size_ + sizeof(int32_t) + value_size_ + sizeof(int32_t) + old_value_size_;
-    // }
     
     inline lsn_t GetLsn() { return lsn_; }
     inline void SetLsn(lsn_t lsn) { lsn_ = lsn; }
@@ -63,14 +54,10 @@ public:
     
     inline const uint32_t &GetKeySize() {return key_size_;}
     inline const uint32_t &GetValueSize() {return value_size_;}
-    // inline const uint32_t &GetOldValueSize() {return old_value_size_;}
     inline const char* GetKey()  { return key_; }
     inline const char* GetValue()  { return value_; }
-    // inline const char* GetOldValue()  { return old_value_; }
 
-    // LogRecord DeserializeFrom(const char* storage);
     static LogRecord DeserializeFrom(const char* storage){
-        // int32_t size = *reinterpret_cast<const int32_t *>(storage);
         storage += sizeof(int32_t);
         lsn_t lsn = *reinterpret_cast<const lsn_t *>(storage);
         storage += sizeof(lsn_t);
@@ -83,8 +70,6 @@ public:
 
         LogRecord res;
         assert(type != LogRecordType::INVALID);
-        // then deserialize data based on type
-        // WARNING!!! don't forget to set lsn since constructor won't provide parameter to initialize lsn
         switch (type) {
         case LogRecordType::COMMIT:
         case LogRecordType::ABORT:
@@ -131,11 +116,6 @@ private:
     const char* key_;
     uint32_t value_size_;
     const char* value_;
-
-    //use for update 
-    // uint32_t old_value_size_;
-    // const char* old_value_;
-
 };
 
 

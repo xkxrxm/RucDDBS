@@ -11,12 +11,12 @@
 Language: Cpp
 BasedOnStyle: Google
 AccessModifierOffset: -4
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
 BinPackArguments: false
 BinPackParameters: false
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
 DerivePointerAlignment: false
 FixNamespaceComments: true
 IncludeBlocks:   Regroup

@@ -2,10 +2,20 @@ CREATE TABLE test (id int , score int) PARTITION BY RANGE (id) (PARTITION LESS T
 BEGIN;
 INSERT INTO test VALUES(10,100);
 INSERT INTO test VALUES(0,99);
-SELECT * FROM test;
-UPDATE test SET score = 100 WHERE test.id = 11;
+SELECT * FROM test where test.id = 10;
+UPDATE test SET score = 100 WHERE test.id = 0;
 SELECT * FROM test;
 DELETE FROM test WHERE test.id = 1;
 SELECT * FROM test;
 COMMIT;
 DROP TABLE test;
+
+-- test FOCC
+CREATE TABLE test (id int , score int) PARTITION BY RANGE (id) (PARTITION LESS THAN (10));
+INSERT INTO test VALUES(1,100);
+BEGIN; -- 449214491508080641
+SELECT * FROM test where test.id = 1;
+
+BEGIN; -- 449214238723932161
+UPDATE test SET score = 0 WHERE test.id = 1;
+COMMIT;

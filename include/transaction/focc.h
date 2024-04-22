@@ -1,8 +1,8 @@
 #pragma once
 #include <semaphore.h>
 
+#include "KVStore_focc.h"
 #include "txn.h"
-#include "KVStore_occ.h"
 
 #define STACK_PUSH(stack, entry) \
     {                            \
@@ -12,8 +12,7 @@
 
 class Transaction;
 class rw_set;
-class Focc
-{
+class Focc {
 public:
     void init();
     bool validate(Transaction *&txn);
@@ -40,5 +39,5 @@ private:
     sem_t _semaphore;
 
     sem_t _active_semaphore;
-    KVStorage *storage;
+    KVStore_beta *storage;
 };
