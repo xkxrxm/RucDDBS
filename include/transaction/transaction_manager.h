@@ -15,7 +15,7 @@ enum class ConcurrencyMode {
 class TransactionManager {
 private:
     Focc *focc_;
-    KVStore *kv_;
+    KVStoreAPI *kv_;
     LogManager *log_manager_;
     ConcurrencyMode concurrency_mode_;
 
@@ -29,7 +29,7 @@ public:
     ~TransactionManager() = default;
     TransactionManager() = delete;
     explicit TransactionManager(
-        KVStore *kv,
+        KVStoreAPI *kv,
         LogManager *log_manager,
         Focc *focc,
         ConcurrencyMode concurrency_mode = ConcurrencyMode::OCC)
@@ -44,7 +44,7 @@ public:
         concurrency_mode_ = concurrency_mode;
     }
 
-    KVStore *getKVstore() { return kv_; }
+    KVStoreAPI *getKVstore() { return kv_; }
 
     static Transaction *getTransaction(txn_id_t txn_id) {
         std::shared_lock<std::shared_mutex> l(txn_map_mutex);

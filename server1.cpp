@@ -3,6 +3,7 @@
 #include <gflags/gflags.h>
 
 #include "engine.h"
+#include "engine/kv_handler.h"
 #include "server.h"
 #include "session.pb.h"
 #include "storage/KVStore.h"
@@ -33,6 +34,7 @@ DEFINE_string(conf,
               "Initial configuration of the replication group");
 DEFINE_string(data_path, "./data", "Path of data stored on");
 DEFINE_string(group, "RaftLog", "Id of the replication group");
+DEFINE_bool(USE_KVSERVER, true, "Use KVServer or not");
 
 int main(int argc, char **argv) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -40,8 +42,11 @@ int main(int argc, char **argv) {
     // auto lock_manager_ = std::make_unique<Lock_manager>(true);
     auto log_storage_ = std::make_unique<LogStorage>("test_db");
     auto log_manager_ = std::make_unique<LogManager>(log_storage_.get());
-
-    auto kv_ = std::make_unique<KVStore>(DATA_DIR);
+    std::unique_ptr<KVStoreAPI> kv_;
+    if (FLAGS_USE_KVSERVER)
+        kv_ = std::make_unique<KVHandler>();
+    else
+        kv_ = std::make_unique<KVStore>(DATA_DIR);
     auto focc_ = std::make_unique<Focc>();
     focc_->init();
     auto transaction_manager_sql = std::make_unique<TransactionManager>(

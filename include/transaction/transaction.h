@@ -15,7 +15,7 @@
 #include "recovery/log_manager.h"
 #include "recovery/log_record.h"
 #include "row_occ.h"
-#include "storage/KVStore.h"
+#include "storage/KVStoreAPI.h"
 #include "storage/modify.h"
 #include "txn.h"
 
@@ -132,7 +132,7 @@ class Transaction {
 private:
     txn_id_t txn_id_;  // 从metaServer中获取的全局唯一严格递增的混合逻辑时间戳
 
-    KVStore *kv_;
+    KVStoreAPI *kv_;
 
     TransactionState state_;
     IsolationLevel isolation_;
@@ -152,7 +152,7 @@ private:
 public:
     explicit Transaction(
         txn_id_t txn_id,
-        KVStore *kv,
+        KVStoreAPI *kv,
         IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE)
         : txn_id_(txn_id),
           kv_(kv),
