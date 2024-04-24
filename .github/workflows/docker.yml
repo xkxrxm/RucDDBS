@@ -1,0 +1,31 @@
+name: ecr
+
+on:
+  push:
+    branches: [ "kuixian/OCC"]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-1
+  
+jobs:
+  ecr:
+    name: ecr
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout 
+      uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+    - name: Build, tag, and push image to Docker HUB
+      id: build-image
+      run: |
+        docker build -t xkxrxm/rucddbms:latest .
+        docker push xkxrxm/rucddbms:latest
+        echo "::set-output name=image::xkxrxm/rucddbms:latest"

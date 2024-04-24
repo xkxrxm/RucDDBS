@@ -39,7 +39,7 @@ add_library(recovery STATIC ${RECOVERY_SRC})
 target_include_directories(recovery PUBLIC ${RECOVERY_DIR} ${STORAGE_DIR} ${INCLUDE_DIR} ${TRANSACTION_DIR} ${RAFT_DIR} ${IMMEMORY_DIR} ${ENGINE_DIR} )
 
 set(DYNAMIC_LIB
-    KV_STORAGE_BETA
+    storage
     proto
     ${CMAKE_THREAD_LIBS_INIT}
     ${GFLAGS_LIBRARY}

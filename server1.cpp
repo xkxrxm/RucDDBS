@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "server.h"
 #include "session.pb.h"
+#include "storage/KVStore.h"
 #include "transaction_manager_rpc.h"
 
 DEFINE_int32(port, 8005, "TCP Port of this server");
@@ -40,7 +41,7 @@ int main(int argc, char **argv) {
     auto log_storage_ = std::make_unique<LogStorage>("test_db");
     auto log_manager_ = std::make_unique<LogManager>(log_storage_.get());
 
-    auto kv_ = std::make_unique<KVStore>(LOG_DIR, log_manager_.get());
+    auto kv_ = std::make_unique<KVStore>(DATA_DIR);
     auto focc_ = std::make_unique<Focc>();
     focc_->init();
     auto transaction_manager_sql = std::make_unique<TransactionManager>(
@@ -88,16 +89,16 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    if (log_manager_->start(FLAGS_port,
-                            FLAGS_election_timeout_ms,
-                            FLAGS_snapshot_interval,
-                            FLAGS_disable_cli,
-                            FLAGS_conf,
-                            FLAGS_data_path,
-                            FLAGS_group) != 0) {
-        LOG(ERROR) << "Fail to start log manager";
-        return -1;
-    }
+    // if (log_manager_->start(FLAGS_port,
+    //                         FLAGS_election_timeout_ms,
+    //                         FLAGS_snapshot_interval,
+    //                         FLAGS_disable_cli,
+    //                         FLAGS_conf,
+    //                         FLAGS_data_path,
+    //                         FLAGS_group) != 0) {
+    //     LOG(ERROR) << "Fail to start log manager";
+    //     return -1;
+    // }
 
     // Wait until Ctrl-C is pressed, then Stop() and Join() the server.
     server.RunUntilAskedToQuit();

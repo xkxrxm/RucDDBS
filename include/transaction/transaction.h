@@ -15,6 +15,7 @@
 #include "recovery/log_manager.h"
 #include "recovery/log_record.h"
 #include "row_occ.h"
+#include "storage/KVStore.h"
 #include "storage/modify.h"
 #include "txn.h"
 
@@ -130,6 +131,9 @@ public:
 class Transaction {
 private:
     txn_id_t txn_id_;  // 从metaServer中获取的全局唯一严格递增的混合逻辑时间戳
+
+    KVStore *kv_;
+
     TransactionState state_;
     IsolationLevel isolation_;
     std::thread::id thread_id_;
@@ -146,6 +150,25 @@ private:
     IP_Port coordinator_ip_;               // 协调者节点
 
 public:
+    explicit Transaction(
+        txn_id_t txn_id,
+        KVStore *kv,
+        IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE)
+        : txn_id_(txn_id),
+          kv_(kv),
+          state_(TransactionState::DEFAULT),
+          isolation_(isolation_level) {
+        distributed_plan_execution_node_ =
+            std::make_shared<std::unordered_set<IP_Port, IP_PortHash>>();
+        is_distributed = false;
+        prev_lsn_ = INVALID_LSN;
+        thread_id_ = std::this_thread::get_id();
+        read_set_ = new rw_set(txn_id_);
+        write_set_ = new rw_set(txn_id_);
+        writes_ = new std::vector<Modify>();
+    };
+
+    ~Transaction(){};
     bool get(string key, shared_ptr<record> &val);
     void del(string key);
     void put(string key, shared_ptr<record> &val);
@@ -207,22 +230,4 @@ public:
     }
     inline IP_Port get_coordinator_ip() { return coordinator_ip_; }
     inline void set_coordinator_ip(IP_Port ip) { coordinator_ip_ = ip; }
-
-    explicit Transaction(
-        txn_id_t txn_id,
-        IsolationLevel isolation_level = IsolationLevel::SERIALIZABLE)
-        : txn_id_(txn_id),
-          state_(TransactionState::DEFAULT),
-          isolation_(isolation_level) {
-        distributed_plan_execution_node_ =
-            std::make_shared<std::unordered_set<IP_Port, IP_PortHash>>();
-        is_distributed = false;
-        prev_lsn_ = INVALID_LSN;
-        thread_id_ = std::this_thread::get_id();
-        read_set_ = new rw_set(txn_id_);
-        write_set_ = new rw_set(txn_id_);
-        writes_ = new std::vector<Modify>();
-    };
-
-    ~Transaction(){};
 };

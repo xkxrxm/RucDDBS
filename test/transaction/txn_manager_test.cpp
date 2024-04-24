@@ -16,7 +16,7 @@ class TxnManagerTest : public ::testing::Test {
 public:
     std::unique_ptr<LogStorage> log_storage_;
     std::unique_ptr<LogManager> log_manager_;
-    std::unique_ptr<KVStore_beta> kv_;
+    std::unique_ptr<KVStore> kv_;
     std::unique_ptr<TransactionManager> transaction_manager_;
     std::unique_ptr<Focc> focc_;
 
@@ -29,7 +29,7 @@ public:
             std::filesystem::remove_all(dir);
             std::filesystem::remove(dir);
         }
-        kv_ = std::make_unique<KVStoreFocc>(dir, log_manager_.get());
+        kv_ = std::make_unique<KVStore>(dir);
         focc_ = std::make_unique<Focc>();
         focc_->init();
         transaction_manager_ = std::make_unique<TransactionManager>(
@@ -43,10 +43,6 @@ public:
         txn->put("y", fake_record);
         txn->put("z", fake_record);
         txn->commit();
-
-        kv_->put("x", "2 1 0");
-        kv_->put("y", "2 1 0");
-        kv_->put("z", "2 1 0");
     }
 };
 
@@ -132,6 +128,5 @@ TEST_F(TxnManagerTest, TxnManagerTest3) {
     // ASSERT_EQ(transaction_manager_->CommitSingle(txn1), true);
 
     auto result = kv_->get("x");
-    ASSERT_EQ(result.first, true);
-    ASSERT_EQ(result.second, "2 1 0");
+    ASSERT_EQ(result, "2 1 0");
 }

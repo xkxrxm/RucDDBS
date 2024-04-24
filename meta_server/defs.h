@@ -1,7 +1,6 @@
 #pragma once
 #include <exception>
 #include <string>
-#include "dbconfig.h"
 
 enum class MetaServerError {
     NO_DATABASE,
@@ -13,15 +12,15 @@ enum class MetaServerError {
     UnixError,
 };
 
-class MetaServerErrorException : public std::exception
-{
+class MetaServerErrorException : public std::exception {
 private:
     MetaServerError err_;
+
 public:
-    explicit MetaServerErrorException(MetaServerError err):err_(err){}
-    MetaServerError getMetaServerError(){return err_;}
+    explicit MetaServerErrorException(MetaServerError err) : err_(err) {}
+    MetaServerError getMetaServerError() { return err_; }
     std::string GetInfo() {
-    switch (err_) {
+        switch (err_) {
         case MetaServerError::NO_DATABASE:
             return "there isn't this database in MetaServer";
         case MetaServerError::NO_TABLE:
@@ -34,10 +33,10 @@ public:
             return "there isn't partition or replica required in MetaServer";
         case MetaServerError::NO_META_DIR:
             return "no meta server dir found";
-        case MetaServerError::UnixError: 
+        case MetaServerError::UnixError:
             return "cd meta server dir error";
+        }
+        return "";
     }
-    return "";
-  }
     ~MetaServerErrorException(){};
 };

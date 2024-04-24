@@ -2,7 +2,7 @@ CREATE TABLE test (id int , score int) PARTITION BY RANGE (id) (PARTITION LESS T
 BEGIN;
 INSERT INTO test VALUES(10,100);
 INSERT INTO test VALUES(0,99);
-SELECT * FROM test where test.id = 10;
+SELECT * FROM test where test.id = 0;
 UPDATE test SET score = 100 WHERE test.id = 0;
 SELECT * FROM test;
 DELETE FROM test WHERE test.id = 1;

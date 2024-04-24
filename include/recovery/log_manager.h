@@ -13,7 +13,6 @@
 #include <mutex>
 #include <thread>
 
-#include "dbconfig.h"
 #include "log_record.h"
 #include "raft_log.pb.h"
 #include "storage/LogStorage.h"

@@ -1,7 +1,6 @@
 #pragma once
 #include <semaphore.h>
 
-#include "KVStore_focc.h"
 #include "txn.h"
 
 #define STACK_PUSH(stack, entry) \
@@ -39,5 +38,4 @@ private:
     sem_t _semaphore;
 
     sem_t _active_semaphore;
-    KVStore_beta *storage;
 };
