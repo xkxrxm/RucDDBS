@@ -11,9 +11,9 @@
 std::unordered_map<txn_id_t, Transaction *> TransactionManager::txn_map = {};
 std::shared_mutex TransactionManager::txn_map_mutex = {};
 
-Transaction *TransactionManager::Begin(Transaction *&txn,
-                                       txn_id_t txn_id,
-                                       IsolationLevel isolation_level) {
+void TransactionManager::Begin(Transaction *&txn,
+                               txn_id_t txn_id,
+                               IsolationLevel isolation_level) {
     if (txn == nullptr) {
         txn = new Transaction(txn_id, kv_, isolation_level);
     }
@@ -27,15 +27,13 @@ Transaction *TransactionManager::Begin(Transaction *&txn,
     std::unique_lock<std::shared_mutex> l(txn_map_mutex);
     assert(txn_map.find(txn_id) == txn_map.end());
     txn_map[txn_id] = txn;
-    return txn;
 }
 
-Transaction *TransactionManager::Begin(Transaction *&txn,
-                                       IsolationLevel isolation_level) {
+void TransactionManager::Begin(Transaction *&txn,
+                               IsolationLevel isolation_level) {
     if (txn == nullptr) {
-        return Begin(txn, getTimestampFromServer(), isolation_level);
+        Begin(txn, getTimestampFromServer(), isolation_level);
     }
-    return txn;
 }
 
 uint64_t TransactionManager::getTimestampFromServer() {

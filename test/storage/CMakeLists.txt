@@ -8,11 +8,12 @@ option(DISKSTORAGE_TEST "disk storage's test" ON)
 
 # storage test
 add_executable(correctness ./correctness.cpp)
-target_link_libraries(correctness storage) 
+target_link_libraries(correctness storage)
+add_test(NAME correctness COMMAND correctness)
 # storage googletest
 add_executable(correct_gtest ./correct_gtest.cpp)
 target_link_libraries(correct_gtest storage gmock_main gtest)
-
+# add_test(NAME correct_gtest COMMAND correct_gtest) # not run this test become it needs long time
 
 # skiplist
 if(SKIPLIST_TEST)
@@ -23,6 +24,7 @@ if(SKIPLIST_TEST)
                         ${PROJECT_SOURCE_DIR}/src/storage/Entry.cpp)
     target_include_directories(skiplist_gtest PRIVATE ${STORAGE_DIR})
     target_link_libraries(skiplist_gtest gmock_main gtest)
+    add_test(NAME skiplist_gtest COMMAND skiplist_gtest)
 endif()
 
 # block builder test
@@ -36,6 +38,7 @@ if(BLOCKBUILDER_TEST)
                         ${PROJECT_SOURCE_DIR}/src/storage/Option.cpp)
     target_include_directories(blockbuilder_gtest PRIVATE ${STORAGE_DIR})
     target_link_libraries(blockbuilder_gtest gmock_main gtest)
+    add_test(NAME blockbuilder_gtest COMMAND blockbuilder_gtest)
 endif()
 
 # table builder test
@@ -54,6 +57,7 @@ if(TABLEBUILDER_TEST)
                         )
     target_include_directories(tablebuilder_gtest PRIVATE ${STORAGE_DIR})
     target_link_libraries(tablebuilder_gtest gmock_main gtest snappy)
+    add_test(NAME tablebuilder_gtest COMMAND tablebuilder_gtest)
 endif()
 
 
@@ -74,6 +78,7 @@ if(LEVELZERO_TEST)
                         )
     target_include_directories(level0_gtest PRIVATE ${STORAGE_DIR})
     target_link_libraries(level0_gtest gmock_main gtest snappy)
+    # add_test(NAME level0_gtest COMMAND level0_gtest) # not run this test because it needs long time
 endif()
 
 if(DISKSTORAGE_TEST) 
@@ -94,6 +99,8 @@ if(DISKSTORAGE_TEST)
                         )
     target_include_directories(diskstorage_gtest PRIVATE ${STORAGE_DIR})
     target_link_libraries(diskstorage_gtest gmock_main gtest snappy)
+    add_test(NAME diskstorage_gtest COMMAND diskstorage_gtest)
 endif()
+
 
 
